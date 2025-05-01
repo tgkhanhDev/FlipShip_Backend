@@ -1,0 +1,92 @@
+-- Create extension uuid if not exists
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Table Account
+CREATE TABLE "Account" (
+    "accountID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Table Customer
+CREATE TABLE "Customer" (
+    "customerID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "fullName" VARCHAR(255),
+    "phoneNumber" VARCHAR(20),
+    address TEXT,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Company
+CREATE TABLE "Company" (
+    "companyID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "companyName" VARCHAR(255),
+    "taxCode" VARCHAR(100),
+    "contactEmail" VARCHAR(255),
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Coordinator
+CREATE TABLE "Coordinator" (
+    "coordinatorID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    department VARCHAR(255),
+    "employeeCode" VARCHAR(100),
+    "assignedRegion" VARCHAR(255),
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Insert sample data into Account table
+INSERT INTO "Account" (email, password, status) VALUES
+    ('john.doe@example.com', '$2a$10$hashedpassword1', 'active'),
+    ('jane.smith@example.com', '$2a$10$hashedpassword2', 'active'),
+    ('acme.corp@example.com', '$2a$10$hashedpassword3', 'active'),
+    ('coordinator1@example.com', '$2a$10$hashedpassword4', 'active'),
+    ('mary.jones@example.com', '$2a$10$hashedpassword5', 'inactive');
+
+-- Insert sample data into Customer table
+INSERT INTO "Customer" ("accountID", "fullName", "phoneNumber", address) VALUES
+    (
+        (SELECT "accountID" FROM "Account" WHERE email = 'john.doe@example.com'),
+        'John Doe',
+        '+1234567890',
+        '123 Main St, New York, NY 10001'
+    ),
+    (
+        (SELECT "accountID" FROM "Account" WHERE email = 'jane.smith@example.com'),
+        'Jane Smith',
+        '+1987654321',
+        '456 Oak Ave, Los Angeles, CA 90001'
+    ),
+    (
+        (SELECT "accountID" FROM "Account" WHERE email = 'mary.jones@example.com'),
+        'Mary Jones',
+        '+1555555555',
+        '789 Pine Rd, Chicago, IL 60601'
+    );
+
+-- Insert sample data into Company table
+INSERT INTO "Company" ("accountID", "companyName", "taxCode", "contactEmail") VALUES
+    (
+        (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com'),
+        'Acme Corporation',
+        '123-456-789',
+        'contact@acme.com'
+    );
+
+-- Insert sample data into Coordinator table
+INSERT INTO "Coordinator" ("accountID", department, "employeeCode", "assignedRegion") VALUES
+    (
+        (SELECT "accountID" FROM "Account" WHERE email = 'coordinator1@example.com'),
+        'Logistics',
+        'EMP001',
+        'North America'
+    );

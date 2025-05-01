@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  accountID   String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email       String       @unique @db.VarChar(255)
+  password    String
+  status      String?      @default("active") @db.VarChar(50)
+  createdAt   DateTime?    @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime?    @default(now()) @db.Timestamptz(6)
+  Company     Company?
+  Coordinator Coordinator?
+  Customer    Customer?
+}
+
+model Company {
+  companyID    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID    String?   @unique @db.Uuid
+  companyName  String?   @db.VarChar(255)
+  taxCode      String?   @db.VarChar(100)
+  contactEmail String?   @db.VarChar(255)
+  createdAt    DateTime? @default(now()) @db.Timestamptz(6)
+  Account      Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+model Coordinator {
+  coordinatorID  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID      String?   @unique @db.Uuid
+  department     String?   @db.VarChar(255)
+  employeeCode   String?   @db.VarChar(100)
+  assignedRegion String?   @db.VarChar(255)
+  createdAt      DateTime? @default(now()) @db.Timestamptz(6)
+  Account        Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+model Customer {
+  customerID  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID   String?   @unique @db.Uuid
+  fullName    String?   @db.VarChar(255)
+  phoneNumber String?   @db.VarChar(20)
+  address     String?
+  createdAt   DateTime? @default(now()) @db.Timestamptz(6)
+  Account     Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
