@@ -7,10 +7,14 @@ import { ErrorCode } from 'src/exception/errorCode.dto';
 import { AuthResponseDto } from './dto/authResponse.dto';
 import { AccountMapper } from './entities/auth.entity';
 import { CreateAccountRequest } from './dto/accountRequest.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private repository: PrismaPostgresService) { }
+  constructor(
+    private readonly repository: PrismaPostgresService,
+    private readonly jwtService: JwtService
+  ) { }
 
   create(createAccountRequest: CreateAccountRequest) {
     return 'This action adds a new auth';
@@ -32,5 +36,24 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+
+  async login(createAccountRequest: CreateAccountRequest): Promise<{access_token: string}> {
+    //Nên gọi từ module
+    const user = await this.repository.account.findFirst({
+      where: {
+        email: createAccountRequest.email,
+        password: createAccountRequest.password
+      }
+    });
+
+    if (!user) {
+      throw new AppException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    const payload = { sub: user.accountID, username: user.email };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }

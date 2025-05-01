@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpRedirectResponse, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpRedirectResponse,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -6,6 +18,8 @@ import { response, Response } from 'express';
 import { ApiResponseDto } from 'src/utils/response.dto';
 import { AuthResponseDto } from './dto/authResponse.dto';
 import { CreateAccountRequest } from './dto/accountRequest.dto';
+import { AuthGuard } from './auth.guard';
+import { Public } from 'src/utils/metadata';
 
 @Controller('auth')
 export class AuthController {
@@ -17,6 +31,7 @@ export class AuthController {
     return await this.authService.create(createAuthDto);
   }
 
+  @Public()
   @Get()
   async findAll(): Promise<ApiResponseDto<AuthResponseDto[]>> {
     const res = await this.authService.findAll()
@@ -40,5 +55,12 @@ export class AuthController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.authService.remove(+id);
+  }
+
+  @Public()
+  @Post('/login')
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() createAuthDto: CreateAccountRequest) {
+    return await this.authService.login(createAuthDto);
   }
 }
