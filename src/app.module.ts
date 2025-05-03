@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AccountModule } from './account/account.module';
 import { guardProviders } from './common/providers/guards.provider';
+import { S3Module } from './thirdParty/s3/s3.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { guardProviders } from './common/providers/guards.provider';
     }),
     PrismaModule,
     AuthModule,
-    AccountModule
+    AccountModule,
+    S3Module
   ],
   controllers: [AppController],
   providers: [AppService, PrismaPostgresService, ...guardProviders],

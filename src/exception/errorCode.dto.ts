@@ -9,11 +9,14 @@ export enum ErrorCode {
     AUTH_INVALID = 'AUTH_INVALID',
 
     // In App
+
     USER_NOT_FOUND = 'USER_NOT_FOUND',
     EMAIL_EXIST = 'EMAIL_EXIST',
     ACCOUNT_NOT_FOUND = 'ACCOUNT_NOT_FOUND',
     INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
     INVALID_USERNAME_OR_PASSWORD = 'INVALID_USERNAME_OR_PASSWORD',
+    //Files
+    FILE_INVALID = 'FILE_INVALID',
     // Add more as needed
 }
 
@@ -45,14 +48,20 @@ export const ErrorMessages: Record<ErrorCode, { message: string; httpStatus: num
     },
     [ErrorCode.ACCOUNT_NOT_FOUND]: {
         message: 'Account not found',
-        httpStatus: 404,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
     [ErrorCode.INVALID_CREDENTIALS]: {
         message: 'Invalid credentials',
-        httpStatus: 401,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
     [ErrorCode.INVALID_USERNAME_OR_PASSWORD]: {
         message: 'Tài khoản hoặc mật khẩu không hợp lệ',
-        httpStatus: 401,
+        httpStatus: HttpStatus.UNAUTHORIZED,
+    },
+
+    //Files
+    [ErrorCode.FILE_INVALID]: {
+        message: 'File khöng hợp lệ',
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
 };

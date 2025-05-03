@@ -11,6 +11,7 @@ import { AccountService } from '../account/account.service';
 import { Account } from '@prisma/client';
 import { AuthRequest } from './dto/authRequest.dto';
 import { AccountResponse } from '../account/dto/accountResponse.dto';
+import { JwtUtilsService } from './jwtUtils.service';
 
 @Injectable()
 export class AuthService {
@@ -18,31 +19,16 @@ export class AuthService {
 
   constructor(
     private readonly repository: PrismaPostgresService,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtUtilsService,
     private readonly accountService: AccountService,
   ) {
     this.accountRepository = this.repository.account;
   }
-
-  create(createAccountRequest: CreateAccountRequest) {
-    return 'This action adds a new auth';
-  }
-
   async findAll(): Promise<AccountResponse[]> {
     const accounts = await this.repository.account.findMany();
     return accounts.map((account) => AccountMapper.toAccountResponse(account));
   }
 
-  findOne(id: number) {
-    throw new AppException(ErrorCode.USER_NOT_FOUND);
-    // return `This action returns a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
-
-  //TODO: ===========================================
   async login(authRequest: AuthRequest): Promise<{access_token: string}> {
     //Nên gọi từ module
     try {
@@ -50,14 +36,13 @@ export class AuthService {
         where: { email: authRequest.email },
       });
 
-      const isMatch = await this.comparePassword(authRequest.password, user.password);
+      const isMatch = await this.jwtService.comparePassword(authRequest.password, user.password);
       if (!isMatch) {
         throw new AppException(ErrorCode.AUTH_INVALID)
       }
 
-      const payload = { sub: user.accountID, username: user.email, role: user.role };
       return {
-        access_token: await this.jwtService.signAsync(payload),
+        access_token: await this.jwtService.createToken(user),
       };
     } catch (error) {
       throw new AppException(ErrorCode.AUTH_INVALID)
@@ -65,20 +50,9 @@ export class AuthService {
   }
 
   async register(createAccountRequest: CreateAccountRequest): Promise<AccountResponse> {
-    createAccountRequest.password = await this.hashPassword(createAccountRequest.password);
+    createAccountRequest.password = await this.jwtService.hashPassword(createAccountRequest.password);
     const response = await this.accountService.createAccount(createAccountRequest)
     return AccountMapper.toAccountResponse(response);
 
-  }
-
-  //Private function
-  private async hashPassword(password: string): Promise<string> {
-    const saltOrRounds = 10;
-    const hash = await bcrypt.hash(password, saltOrRounds);
-    return hash;
-  }
-
-  private async comparePassword(password: string, hash: string): Promise<boolean> {
-    return await bcrypt.compare(password, hash);
   }
 }
