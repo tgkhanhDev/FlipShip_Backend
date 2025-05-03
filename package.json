@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma": "prisma --schema=src/prisma/schema.prisma",
+    "db:refresh": "npx prisma db pull --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -28,6 +30,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.1.6",
     "@prisma/client": "^6.7.0",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.2",

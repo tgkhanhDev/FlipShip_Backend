@@ -3,12 +3,15 @@ import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
-  HttpException, BadRequestException, Logger,
+  HttpException,
+  BadRequestException,
+  Logger,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ErrorCode, ErrorMessages } from './errorCode.dto';
 import { AppException, AppValidateException } from './app.exception';
-import { ApiResponseDto } from 'src/utils/response.dto';
+import { ApiResponse } from 'src/common/utils/response.dto';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -17,8 +20,8 @@ export class AppExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     let status = 500;
     let errorCode = ErrorCode.SERVER_ERROR;
-    let message = ErrorMessages[errorCode].message;
-    let details = exception.message || 'An unexpected error occurred';
+    let message = exception.response?.message || ErrorMessages[errorCode].message;
+    let details = exception.response?.detail || exception?.message || 'An unexpected error occurred';
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -33,9 +36,9 @@ export class AppExceptionFilter implements ExceptionFilter {
         message = ErrorMessages[errorCode].message;
         details = exceptionResponse.details;
       } else {
-        errorCode = ErrorCode.SERVER_ERROR;
-        message = ErrorMessages[errorCode].message;
-        details = exception.getResponse();
+        // errorCode = ErrorCode.SERVER_ERROR;
+        // message = ErrorMessages[errorCode].message;
+        // details = exception.getResponse();
       }
     }
 
@@ -43,7 +46,7 @@ export class AppExceptionFilter implements ExceptionFilter {
       status: status,
       message,
       data: this.convertMapToRecord(details),
-    } as ApiResponseDto<any>);
+    } as ApiResponse<any>);
   }
 
   private convertMapToRecord(details: any): any {
@@ -61,5 +64,4 @@ export class AppExceptionFilter implements ExceptionFilter {
     }
     return details;
   }
-
 }

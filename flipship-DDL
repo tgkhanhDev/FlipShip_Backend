@@ -1,0 +1,82 @@
+-- Create extension uuid if not exists
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create Role enum
+CREATE TYPE "Role" AS ENUM ('Admin', 'Staff', 'Company', 'Coordinator', 'Driver', 'Customer');
+
+-- Table Account
+CREATE TABLE "Account" (
+    "accountID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    role "Role" NOT NULL, -- Added Role enum
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Table Customer
+CREATE TABLE "Customer" (
+    "customerID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "fullName" VARCHAR(255),
+    "phoneNumber" VARCHAR(20),
+    address TEXT,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Company
+CREATE TABLE "Company" (
+    "companyID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "companyName" VARCHAR(255),
+    "taxCode" VARCHAR(100),
+    "contactEmail" VARCHAR(255),
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Coordinator
+CREATE TABLE "Coordinator" (
+    "coordinatorID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    department VARCHAR(255),
+    "employeeCode" VARCHAR(100),
+    "assignedRegion" VARCHAR(255),
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Driver
+CREATE TABLE "Driver" (
+    "driverID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "licenseNumber" VARCHAR(50) NOT NULL,
+    "vehicleType" VARCHAR(100), -- e.g., Truck, Van, Motorcycle
+    "licenseExpiry" DATE,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Staff
+CREATE TABLE "Staff" (
+    "staffID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "fullName" VARCHAR(255),
+    "department" VARCHAR(100), -- e.g., HR, IT, Operations
+    "employeeCode" VARCHAR(50) NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Table Admin
+CREATE TABLE "Admin" (
+    "adminID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID UNIQUE,
+    "fullName" VARCHAR(255),
+    "accessLevel" VARCHAR(50) NOT NULL, -- e.g., SuperAdmin, Moderator
+    "lastLogin" TIMESTAMPTZ,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);

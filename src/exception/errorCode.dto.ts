@@ -10,6 +10,7 @@ export enum ErrorCode {
 
     // In App
     USER_NOT_FOUND = 'USER_NOT_FOUND',
+    EMAIL_EXIST = 'EMAIL_EXIST',
     ACCOUNT_NOT_FOUND = 'ACCOUNT_NOT_FOUND',
     INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
     INVALID_USERNAME_OR_PASSWORD = 'INVALID_USERNAME_OR_PASSWORD',
@@ -36,6 +37,10 @@ export const ErrorMessages: Record<ErrorCode, { message: string; httpStatus: num
     // In App
     [ErrorCode.USER_NOT_FOUND]: {
         message: 'Người dùng không tồn tại',
+        httpStatus: HttpStatus.BAD_REQUEST,
+    },
+    [ErrorCode.EMAIL_EXIST]: {
+        message: 'Email đã có người sử dụng',
         httpStatus: HttpStatus.BAD_REQUEST,
     },
     [ErrorCode.ACCOUNT_NOT_FOUND]: {

@@ -12,55 +12,35 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { response, Response } from 'express';
-import { ApiResponseDto } from 'src/utils/response.dto';
-import { AuthResponseDto } from './dto/authResponse.dto';
-import { CreateAccountRequest } from './dto/accountRequest.dto';
-import { AuthGuard } from './auth.guard';
-import { Public } from 'src/utils/metadata';
+import { ApiResponse } from 'src/common/utils/response.dto';
+import { AuthResponse } from './dto/authResponse.dto';
+import { Public, RoleMatch } from 'src/common/utils/metadata';
+import { Role } from '@prisma/client';
+import { CreateAccountRequest } from '../account/dto/accountRequest.dto';
+import { AuthRequest } from './dto/authRequest.dto';
+import { AccountResponse } from '../account/dto/accountResponse.dto';
 
 @Controller('auth')
+@Public()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
+  @Post("/registration")
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createAuthDto: CreateAccountRequest) {
-    return await this.authService.create(createAuthDto);
+  async signUp(@Body() createAuth: CreateAccountRequest): Promise<ApiResponse<AccountResponse>> {
+    return ApiResponse.build<AccountResponse>(
+      HttpStatus.CREATED,
+      await this.authService.register(createAuth),
+      "Tạo tài khoản thành công");
   }
 
-  @Public()
-  @Get()
-  async findAll(): Promise<ApiResponseDto<AuthResponseDto[]>> {
-    const res = await this.authService.findAll()
-    return {
-     status: 200,
-     data: res,
-     message: 'success' 
-    }
+  @Post("/login")
+  async signIn(@Body() authRequest: AuthRequest ):Promise<ApiResponse<AuthResponse>> {
+    return ApiResponse.build<AuthResponse>(
+      HttpStatus.OK,
+      await this.authService.login(authRequest),
+      "Đăng nhập thành công"
+    )
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
-
-  @Public()
-  @Post('/login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() createAuthDto: CreateAccountRequest) {
-    return await this.authService.login(createAuthDto);
-  }
 }

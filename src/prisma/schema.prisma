@@ -12,11 +12,15 @@ model Account {
   email       String       @unique @db.VarChar(255)
   password    String
   status      String?      @default("active") @db.VarChar(50)
+  role        Role
   createdAt   DateTime?    @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime?    @default(now()) @db.Timestamptz(6)
+  Admin       Admin?
   Company     Company?
   Coordinator Coordinator?
   Customer    Customer?
+  Driver      Driver?
+  Staff       Staff?
 }
 
 model Company {
@@ -47,4 +51,43 @@ model Customer {
   address     String?
   createdAt   DateTime? @default(now()) @db.Timestamptz(6)
   Account     Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+model Admin {
+  adminID     String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID   String?   @unique @db.Uuid
+  fullName    String?   @db.VarChar(255)
+  accessLevel String    @db.VarChar(50)
+  lastLogin   DateTime? @db.Timestamptz(6)
+  createdAt   DateTime? @default(now()) @db.Timestamptz(6)
+  Account     Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+model Driver {
+  driverID      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID     String?   @unique @db.Uuid
+  licenseNumber String    @db.VarChar(50)
+  vehicleType   String?   @db.VarChar(100)
+  licenseExpiry DateTime? @db.Date
+  createdAt     DateTime? @default(now()) @db.Timestamptz(6)
+  Account       Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+model Staff {
+  staffID      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID    String?   @unique @db.Uuid
+  fullName     String?   @db.VarChar(255)
+  department   String?   @db.VarChar(100)
+  employeeCode String    @db.VarChar(50)
+  createdAt    DateTime? @default(now()) @db.Timestamptz(6)
+  Account      Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+}
+
+enum Role {
+  Admin
+  Staff
+  Company
+  Coordinator
+  Driver
+  Customer
 }
