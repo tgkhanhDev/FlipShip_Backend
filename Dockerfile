@@ -3,10 +3,20 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
+# Copy package files and prisma schema
 COPY package*.json ./
+COPY src/prisma ./src/prisma
+
+# Install dependencies (including devDependencies)
 RUN npm install --production=false
 
+# Generate Prisma client (specify schema path)
+RUN npx prisma generate --schema=src/prisma/schema.prisma
+
+# Copy the rest of your app
 COPY . .
+
+# Build the app
 RUN npm run build
 
 
@@ -21,7 +31,7 @@ RUN apt-get update -y && \
 
 WORKDIR /app
 
-# Only copy the required parts
+# Copy required files for production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
