@@ -18,12 +18,18 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: ${{ matrix.node-version }}
-                  cache: 'npm'
+                  cache: 'yarn'
             # install dependencies
             - name: Check package.json and package-lock.json sync
-              run: npm install --dry-run
+              run: yarn install --dry-run
             - name: Install Dependencies
-              run: npm ci
+              run: if [ -e yarn.lock ]; then
+                  yarn install --frozen-lockfile
+                  elif [ -e package-lock.json ]; then
+                  npm ci
+                  else
+                  npm i
+                  fi
 
             # prisma
             - name: Generate Prisma Client
@@ -31,7 +37,7 @@ jobs:
 
             # build
             - name: Build app
-              run: npm run build
+              run: yarn build
 
     test-stage:
         runs-on: ubuntu-22.04
