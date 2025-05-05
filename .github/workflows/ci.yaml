@@ -65,4 +65,6 @@ jobs:
             context: .
             file: ./Dockerfile
             push: true
-            tags: ${{ secrets.DOCKER_USERNAME }}/fs-image:$COMMIT_HASH
+            tags: |
+              ${{ secrets.DOCKERHUB_USERNAME }}/fs-image:latest
+              ${{ secrets.DOCKERHUB_USERNAME }}/fs-image:$COMMIT_HASH
