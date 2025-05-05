@@ -67,4 +67,4 @@ jobs:
             push: true
             tags: |
               ${{ secrets.DOCKERHUB_USERNAME }}/fs-image:latest
-              ${{ secrets.DOCKERHUB_USERNAME }}/fs-image:$COMMIT_HASH
+              ${{ secrets.DOCKERHUB_USERNAME }}/fs-image:${{ env.COMMIT_HASH }}
