@@ -23,13 +23,7 @@ jobs:
             - name: Check package.json and package-lock.json sync
               run: yarn install --dry-run
             - name: Install Dependencies
-              run: if [ -e yarn.lock ]; then
-                  yarn install --frozen-lockfile
-                  elif [ -e package-lock.json ]; then
-                  npm ci
-                  else
-                  npm i
-                  fi
+              run: yarn install --frozen-lockfile
 
             # prisma
             - name: Generate Prisma Client
