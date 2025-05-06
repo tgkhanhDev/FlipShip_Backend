@@ -1,13 +1,13 @@
 -- Insert sample data into Account table
 INSERT INTO "Account" (email, password, status, role) VALUES
-    ('john.doe@example.com', '$2a$10$hashedpassword1', 'active', 'Customer'),
-    ('jane.smith@example.com', '$2a$10$hashedpassword2', 'active', 'Customer'),
-    ('acme.corp@example.com', '$2a$10$hashedpassword3', 'active', 'Company'),
-    ('coordinator1@example.com', '$2a$10$hashedpassword4', 'active', 'Coordinator'),
-    ('mary.jones@example.com', '$2a$10$hashedpassword5', 'inactive', 'Customer'),
-    ('driver1@example.com', '$2a$10$hashedpassword6', 'active', 'Driver'),
-    ('staff1@example.com', '$2a$10$hashedpassword7', 'active', 'Staff'),
-    ('admin1@example.com', '$2a$10$hashedpassword8', 'active', 'Admin');
+    ('john.doe@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer'),
+    ('jane.smith@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer'),
+    ('acme.corp@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Company'),
+    ('coordinator1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Coordinator'),
+    ('mary.jones@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'inactive', 'Customer'),
+    ('driver1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Driver'),
+    ('staff1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Staff'),
+    ('admin1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Admin');
 
 -- Insert sample data into Customer table
 INSERT INTO "Customer" ("accountID", "fullName", "phoneNumber", address) VALUES

@@ -80,3 +80,25 @@ CREATE TABLE "Admin" (
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
 );
+
+-- Create Status enum for Application
+CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+
+-- Create Table Application
+CREATE TABLE "Application" (
+    "applicationID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "senderID" UUID, -- References Account except Staff
+    "staffID" UUID, -- References Staff if receiver is Staff
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "reviewedAt" TIMESTAMPTZ DEFAULT NOW(),
+
+    "senderNote" VARCHAR(1000),
+    "senderFileUrl" VARCHAR(255),
+
+    "staffNote" VARCHAR(1000),
+    "staffFileUrl" VARCHAR(255),
+    "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
+
+    FOREIGN KEY ("senderID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("staffID") REFERENCES "Staff"("staffID") ON DELETE SET NULL
+);
