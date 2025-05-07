@@ -87,12 +87,12 @@ CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 -- Create Table Application
 CREATE TABLE "Application" (
     "applicationID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "senderID" UUID, -- References Account except Staff
+    "senderID" UUID NOT NULL, -- References Account except Staff
     "staffID" UUID, -- References Staff if receiver is Staff
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
     "reviewedAt" TIMESTAMPTZ DEFAULT NOW(),
 
-    "senderNote" VARCHAR(1000),
+    "senderNote" VARCHAR(1000) NOT NULL,
     "senderFileUrl" VARCHAR(255),
 
     "staffNote" VARCHAR(1000),

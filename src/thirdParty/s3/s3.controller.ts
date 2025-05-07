@@ -19,6 +19,13 @@ import { JwtUtilsService } from '../../auth/jwtUtils.service';
 
 @Controller('file/v1')
 export class S3Controller {
+
+  private readonly ALLOWED_MIME_TYPES = [
+    'application/vnd.ms-excel', // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  ];
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
   constructor(
     private readonly s3Service: S3Service,
     private readonly jwtService: JwtUtilsService
@@ -29,28 +36,14 @@ export class S3Controller {
   async upload(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
     if (!file) {
       throw new AppException(ErrorCode.FILE_INVALID);
-    }
-
-    const allowedTypes = [
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-
-    // if (!allowedTypes.includes(file.mimetype)) {
-    //   throw new BadRequestException('Chỉ sử dụng file có định dạng sau: .xls, .xlsx');
-    // }
-
-    if (file.size > 5 * 1024 * 1024) {
+    } else if (!this.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException('Chỉ sử dụng file có định dạng sau: .xls, .xlsx');
+    } else if (file.size > this.MAX_FILE_SIZE) {
       throw new BadRequestException('Kích thước file phải nhỏ hơn 5MB');
     }
 
-    //extract token
-    if(req.headers.authorization === undefined) {
-      throw new AppException(ErrorCode.AUTH_INVALID);
-    }
-    const token = req.headers.authorization.replace('Bearer ', "");
-    const payload = await this.jwtService.decodeToken(token)
 
+    const payload = await this.jwtService.extractAndDecodeToken(req);
     const key = `${Date.now()}-${payload.sub}.xlsx`;
 
     const url = await this.s3Service.uploadFile(
@@ -77,4 +70,5 @@ export class S3Controller {
       throw new AppException(ErrorCode.FILE_INVALID);
     }
   }
+
 }

@@ -87,16 +87,16 @@ model Staff {
 
 model Application {
   applicationID String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  senderID      String?           @db.Uuid
+  senderID      String            @db.Uuid
   staffID       String?           @db.Uuid
   createdAt     DateTime?         @default(now()) @db.Timestamptz(6)
   reviewedAt    DateTime?         @default(now()) @db.Timestamptz(6)
-  senderNote    String?           @db.VarChar(1000)
+  senderNote    String            @db.VarChar(1000)
   senderFileUrl String?           @db.VarChar(255)
   staffNote     String?           @db.VarChar(1000)
   staffFileUrl  String?           @db.VarChar(255)
   status        ApplicationStatus @default(PENDING)
-  Account       Account?          @relation(fields: [senderID], references: [accountID], onUpdate: NoAction)
+  Account       Account           @relation(fields: [senderID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
   Staff         Staff?            @relation(fields: [staffID], references: [staffID], onUpdate: NoAction)
 }
 
