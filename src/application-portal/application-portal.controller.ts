@@ -1,19 +1,29 @@
 import {
   BadRequestException,
   Body,
-  Controller, Get,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
-  Post, Query,
+  Post,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApplicationPortalService } from './application-portal.service';
 import { S3Service } from '../thirdParty/s3/s3.service';
-import { CreateApplicationRequest, ViewApplicationRequestQuery } from './dto/applicationRequest.dto';
-import { ApiResponse } from '../common/utils/response.dto';
-import { Application } from '@prisma/client';
+import {
+  CreateApplicationRequest, StaffReviewApplicationRequest,
+  ViewApplicationRequestQuery,
+  ViewReviewableApplicationRequestQuery,
+} from './dto/applicationRequest.dto';
+import {
+  ApiResponse,
+  PaginationParams,
+  PaginationResponse,
+} from '../common/utils/response.dto';
+import { Application, ApplicationStatus, Role } from '@prisma/client';
 import { AccountResponse } from '../account/dto/accountResponse.dto';
 import { Request } from 'express';
 import { JwtUtilsService } from '../auth/jwtUtils.service';
@@ -21,6 +31,8 @@ import { ErrorCode } from '../exception/errorCode.dto';
 import { AppException } from '../exception/app.exception';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApplicationResponse } from './dto/applicationResponse.dto';
+import { RoleMatch } from '../common/utils/metadata';
+import { ValidationPipe } from '../validators/validation.pipe';
 
 @Controller('service')
 export class ApplicationPortalController {
@@ -84,27 +96,90 @@ export class ApplicationPortalController {
     );
   }
 
-  @Get("/sent-application")
-    async viewSenderApplicationRequest(@Query() query: ViewApplicationRequestQuery, @Req() req: Request): Promise<ApiResponse<{applications: ApplicationResponse[];
-    total: number;
-    page: number;
-    limit: number;
-  }>> {
-    const { applicationStatus } = query;
+  @Get('/sent-application')
+  async viewSenderApplicationRequest(
+    @Query() query: ViewApplicationRequestQuery,
+    @Req() req: Request,
+  ): Promise<PaginationResponse<ApplicationResponse[]>> {
+    const { applicationStatus, page, limit } = query;
 
     const payload = await this.jwtService.extractAndDecodeToken(req);
     const senderID = payload.sub;
 
-    return ApiResponse.build<{
-      applications: ApplicationResponse[];
-      total: number;
-      page: number;
-      limit: number;
-    }>(
+    const pagiParam: PaginationParams = {
+      page: parseInt(page + '') || 1,
+      limit: parseInt(limit + '') || 10,
+    };
+
+    const response =
+      await this.applicationPortalService.viewSenderApplicationRequests(
+        senderID,
+        applicationStatus,
+        pagiParam,
+      );
+
+    return PaginationResponse.build<ApplicationResponse[]>(
       HttpStatus.CREATED,
-      await this.applicationPortalService.viewSenderApplicationRequests(senderID, applicationStatus),
-    'Tạo mô tài khoản thành công',
+      response.data,
+      'Tạo mô tài khoản thành công',
+      page,
+      response.total,
+      limit,
     );
   }
 
+  @Get('/reviewable-application')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async viewReviewableApplication(
+    @Query() query: ViewReviewableApplicationRequestQuery,
+    @Req() req: Request,
+  ): Promise<PaginationResponse<ApplicationResponse[]>> {
+    const { email, page, limit } = query;
+
+    // const payload = await this.jwtService.extractAndDecodeToken(req);
+    // const senderID = payload.sub;
+
+    const pagiParam: PaginationParams = {
+      page: parseInt(page + '') || 1,
+      limit: parseInt(limit + '') || 10,
+    };
+
+    const response =
+      await this.applicationPortalService.viewReviewableApplicationRequests(
+        email,
+        pagiParam,
+      );
+
+    return PaginationResponse.build<ApplicationResponse[]>(
+      HttpStatus.CREATED,
+      response.data,
+      'Tạo mô tài khoản thành công',
+      page,
+      response.total,
+      limit,
+    );
+  }
+
+  // @ts-ignore
+  @Post('/reviewable-application')
+  @RoleMatch(Role.Admin, Role.Staff)
+  @UseInterceptors(FileInterceptor('senderFile'))
+  async addReviewToApplication(
+    @Req() req: Request,
+    @Body(ValidationPipe) review: StaffReviewApplicationRequest,
+    @UploadedFile() senderFile?: Express.Multer.File,
+  ) {
+    if (!review.staffNote || review.staffNote.trim() === '') {
+      throw new BadRequestException('Ghi chú là bắt buộc');
+    } else if (review.applicationStatus == ApplicationStatus.PENDING){
+      throw new BadRequestException("Trạng thái đơn phải thuộc: APPROVED, REJECTED");
+    }
+    const payload = await this.jwtService.extractAndDecodeToken(req);
+
+    //set sender ID & file Url:
+    const senderId = payload.sub;
+    // console.log(`Received review: applicationID=${review.applicationID}, staffNote=${review.staffNote}, staffFileUrl=${review.staffFileUrl}, file=${senderFile?.originalname}`);
+
+    return this.applicationPortalService.addReviewToApplication(review, senderId);
+  }
 }

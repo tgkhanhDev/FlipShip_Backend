@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma": "prisma --schema=src/prisma/schema.prisma",
-    "db:refresh": "npx prisma db pull --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma"
+    "db:refresh": "npx prisma db pull --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma",
+    "db:view": "npx prisma studio --schema=src/prisma/schema.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.802.0",

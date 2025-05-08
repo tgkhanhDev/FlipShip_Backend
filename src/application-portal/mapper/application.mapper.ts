@@ -1,8 +1,13 @@
-import { Application } from '@prisma/client';
+import { Account, Application, Staff } from '@prisma/client';
 import { ApplicationResponse } from '../dto/applicationResponse.dto';
 
+type ApplicationWithRelations = Application & {
+  Account: Account;
+  Staff: Staff | null;
+};
+
 export class ApplicationMapper {
-  static toApplicationResponse(application: Application): ApplicationResponse {
+  static toApplicationResponse(application: ApplicationWithRelations): ApplicationResponse {
     return {
       applicationID: application.applicationID,
       senderID: application.senderID ,
@@ -13,6 +18,8 @@ export class ApplicationMapper {
       senderFileUrl: application.senderFileUrl,
       staffNote: application.staffNote,
       staffFileUrl: application.staffFileUrl,
+      Account: application.Account,
+      Staff: application.Staff,
       status: application.status,
     };
   }

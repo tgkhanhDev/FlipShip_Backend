@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import { Application, ApplicationStatus, Role } from '@prisma/client';
 import {
@@ -33,18 +33,19 @@ export class ApplicationPortalService {
     });
   }
 
-  //!Staff
+  //Customer
   async viewSenderApplicationRequests(
     senderID: string,
     status: ApplicationStatus | null,
     pagination: PaginationParams = { page: 1, limit: 10 }, // Default values
   ): Promise<{
-    applications: ApplicationResponse[];
+    data: ApplicationResponse[];
     total: number;
-    page: number;
-    limit: number;
   }> {
     try {
+      const { page, limit } = pagination;
+      const skipNumber = (page - 1) * limit;
+
       // Build the where clause
       const where = {
         senderID, // Match schema field name
@@ -55,21 +56,27 @@ export class ApplicationPortalService {
       const [applications, total] = await Promise.all([
         this.applicationRepository.findMany({
           where,
-          skip: pagination?.page,
+          skip: skipNumber,
           take: pagination?.limit,
           select: {
             applicationID: true,
-            senderID: true,
+            senderID: false,
             senderNote: true,
             senderFileUrl: true,
             status: true,
             createdAt: true,
             reviewedAt: true,
-            staffID: true,
+            staffID: false,
             staffNote: true,
             staffFileUrl: true,
-            Account: { select: { email: true } }, // Use Account relation
-            Staff: { select: { email: true } }, // Use Staff relation
+            Account: {
+              select: {
+                accountID: true,
+                email: true,
+                role: true,
+              },
+            },
+            Staff: true,
           },
         }),
         this.applicationRepository.count({ where }),
@@ -82,17 +89,108 @@ export class ApplicationPortalService {
       );
 
       return {
-        applications: mappedApplications,
+        data: mappedApplications,
         total,
-        page: pagination.page,
-        limit: pagination.limit,
       };
-
     } catch (error) {
       Logger.error('Error fetching applications:', error);
       throw new AppException(ErrorCode.SERVER_ERROR);
     }
+  }
 
+  async viewReviewableApplicationRequests(
+    email: string | null,
+    pagination: PaginationParams = { page: 1, limit: 10 }, // Default values
+  ): Promise<{
+    data: ApplicationResponse[];
+    total: number;
+  }> {
+    try {
+      const { page, limit } = pagination;
+      const skipNumber = (page - 1) * limit;
+
+      // Build the where clause
+      const where = {
+        Account: {
+          status: 'active',
+          ...(email ? { email: { contains: email, mode: 'insensitive' } } : {}),
+        },
+      };
+
+      const [applications, total] = await Promise.all([
+        this.applicationRepository.findMany({
+          where,
+          skip: skipNumber,
+          take: pagination?.limit,
+          select: {
+            applicationID: true,
+            senderID: false,
+            senderNote: true,
+            senderFileUrl: true,
+            status: true,
+            createdAt: true,
+            reviewedAt: true,
+            staffID: false,
+            staffNote: true,
+            staffFileUrl: true,
+            Account: {
+              select: {
+                accountID: true,
+                email: true,
+                role: true,
+                status: true
+              },
+            },
+            Staff: true,
+          },
+        }),
+        this.applicationRepository.count({ where }),
+      ]);
+
+      //Map to response DTO
+      const mappedApplications = applications.map((application) =>
+        ApplicationMapper.toApplicationResponse(application),
+      );
+
+      return {
+        data: mappedApplications,
+        total,
+      };
+    } catch (error) {
+      Logger.error('Error fetching applications:', error);
+      throw new AppException(ErrorCode.SERVER_ERROR);
+    }
+  }
+
+  async addReviewToApplication(
+    staffReviewApplicationRequest: StaffReviewApplicationRequest,
+    staffID: string
+  ): Promise<ApplicationResponse> {
+
+    const {applicationID, applicationStatus, staffFileUrl, staffNote} = staffReviewApplicationRequest
+
+    const application: Application = await this.applicationRepository.findUnique({
+      where: {
+        applicationID: staffReviewApplicationRequest.applicationID,
+      },
+    });
+
+    if(!application) throw new BadRequestException("Đơn không tồn tại")
+
+    const persistedApplication: any = await this.applicationRepository.update({
+      where: {
+        applicationID: staffReviewApplicationRequest.applicationID,
+      },
+      data: {
+        status: applicationStatus,
+        staffID: staffID,
+        staffNote: staffNote,
+        staffFileUrl: staffFileUrl ? staffFileUrl : null,
+        reviewedAt: new Date(),
+      }
+    });
+
+    return ApplicationMapper.toApplicationResponse(persistedApplication);
   }
 
 }
