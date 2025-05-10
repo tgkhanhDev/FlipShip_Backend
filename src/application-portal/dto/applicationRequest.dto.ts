@@ -15,7 +15,7 @@ export class StaffReviewApplicationRequest {
   @IsString({ message: 'staffNote must be a string' })
   staffNote: string;
 
-  // @IsEnum(ApplicationStatus, { message: 'Trạng thái đơn phải thuộc: APPROVED, REJECTED' })
+  @IsEnum(ApplicationStatus, { message: 'Trạng thái đơn phải thuộc: APPROVED, REJECTED' })
   applicationStatus: ApplicationStatus
 
 

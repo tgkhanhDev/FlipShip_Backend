@@ -160,7 +160,6 @@ export class ApplicationPortalController {
     );
   }
 
-  // @ts-ignore
   @Post('/reviewable-application')
   @RoleMatch(Role.Admin, Role.Staff)
   @UseInterceptors(FileInterceptor('senderFile'))

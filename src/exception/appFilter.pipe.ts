@@ -42,6 +42,8 @@ export class AppExceptionFilter implements ExceptionFilter {
       }
     }
 
+    if(status === 500) Logger.error(details)
+
     response.status(status).json({
       status: status,
       message,

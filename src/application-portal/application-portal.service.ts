@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
-import { Application, ApplicationStatus, Role } from '@prisma/client';
+import { Application, ApplicationStatus, Role, Staff } from '@prisma/client';
 import {
   CreateApplicationRequest,
   StaffReviewApplicationRequest,
@@ -164,7 +164,7 @@ export class ApplicationPortalService {
 
   async addReviewToApplication(
     staffReviewApplicationRequest: StaffReviewApplicationRequest,
-    staffID: string
+    reviewerID: string
   ): Promise<ApplicationResponse> {
 
     const {applicationID, applicationStatus, staffFileUrl, staffNote} = staffReviewApplicationRequest
@@ -177,13 +177,25 @@ export class ApplicationPortalService {
 
     if(!application) throw new BadRequestException("Đơn không tồn tại")
 
+    const staff: Staff = await this.staffRepository.findUnique({
+      where: {
+        accountID: reviewerID
+      },
+    });
+    if(!staff) throw new BadRequestException("Nhân viên không tồn tại")
+
     const persistedApplication: any = await this.applicationRepository.update({
       where: {
         applicationID: staffReviewApplicationRequest.applicationID,
       },
       data: {
         status: applicationStatus,
-        staffID: staffID,
+        Staff: {
+          connect: {
+            staffID: staff.staffID,
+          },
+
+        },
         staffNote: staffNote,
         staffFileUrl: staffFileUrl ? staffFileUrl : null,
         reviewedAt: new Date(),
