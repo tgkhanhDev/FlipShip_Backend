@@ -9,7 +9,6 @@ export enum ErrorCode {
     AUTH_INVALID = 'AUTH_INVALID',
 
     // In App
-
     USER_NOT_FOUND = 'USER_NOT_FOUND',
     EMAIL_EXIST = 'EMAIL_EXIST',
     ACCOUNT_NOT_FOUND = 'ACCOUNT_NOT_FOUND',
@@ -17,10 +16,12 @@ export enum ErrorCode {
     INVALID_USERNAME_OR_PASSWORD = 'INVALID_USERNAME_OR_PASSWORD',
     //Files
     FILE_INVALID = 'FILE_INVALID',
+    EXCEL_HEADERS_INVALID = 'EXCEL_HEADERS_INVALID',
     // Add more as needed
 }
 
 export const ErrorMessages: Record<ErrorCode, { message: string; httpStatus: number }> = {
+
     //Internal Server
     [ErrorCode.SERVER_ERROR]: {
         message: 'Internal Server Error',
@@ -64,4 +65,9 @@ export const ErrorMessages: Record<ErrorCode, { message: string; httpStatus: num
         message: 'File khöng hợp lệ',
         httpStatus: HttpStatus.BAD_REQUEST,
     },
+    [ErrorCode.EXCEL_HEADERS_INVALID]: {
+        message: 'Format của Excel khöng hợp lệ',
+        httpStatus: HttpStatus.BAD_REQUEST,
+    }
+
 };

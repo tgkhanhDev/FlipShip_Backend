@@ -16,7 +16,11 @@ import { ApiResponse } from 'src/common/utils/response.dto';
 import { AuthResponse } from './dto/authResponse.dto';
 import { Public, RoleMatch } from 'src/common/utils/metadata';
 import { Role } from '@prisma/client';
-import { CreateAccountRequest } from '../account/dto/accountRequest.dto';
+import {
+  CreateAccountRequest,
+  CreateCustomerAccountRequest,
+  CreateDriverAccountRequest,
+} from '../account/dto/accountRequest.dto';
 import { AuthRequest } from './dto/authRequest.dto';
 import { AccountResponse } from '../account/dto/accountResponse.dto';
 
@@ -41,6 +45,25 @@ export class AuthController {
       await this.authService.login(authRequest),
       "Đăng nhập thành công"
     )
+  }
+
+  @Post("/register-customer")
+  @HttpCode(HttpStatus.CREATED)
+  async signUpCustomer(@Body() createCustomerAccount: CreateCustomerAccountRequest): Promise<ApiResponse<AccountResponse>> {
+
+    return ApiResponse.build<AccountResponse>(
+      HttpStatus.CREATED,
+      await this.authService.registerCustomer(createCustomerAccount),
+      "Tạo tài khoản thành công");
+  }
+
+  @Post("/register-driver")
+  @HttpCode(HttpStatus.CREATED)
+  async signUpDriver(@Body() createDriverAccount: CreateDriverAccountRequest): Promise<ApiResponse<AccountResponse>> {
+    return ApiResponse.build<AccountResponse>(
+      HttpStatus.CREATED,
+      await this.authService.registerDriver(createDriverAccount),
+      "Tạo tài khoản thành công");
   }
 
 }

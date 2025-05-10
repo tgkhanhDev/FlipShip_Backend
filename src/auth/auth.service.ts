@@ -6,7 +6,11 @@ import { JwtService } from '@nestjs/jwt';
 import { AccountMapper } from '../account/mapper/account.mapper';
 import * as bcrypt from 'bcrypt';
 import { AuthResponse } from './dto/authResponse.dto';
-import { CreateAccountRequest } from '../account/dto/accountRequest.dto';
+import {
+  CreateAccountRequest,
+  CreateCustomerAccountRequest,
+  CreateDriverAccountRequest,
+} from '../account/dto/accountRequest.dto';
 import { AccountService } from '../account/account.service';
 import { Account } from '@prisma/client';
 import { AuthRequest } from './dto/authRequest.dto';
@@ -54,5 +58,21 @@ export class AuthService {
     const response = await this.accountService.createAccount(createAccountRequest)
     return AccountMapper.toAccountResponse(response);
 
+  }
+
+  async registerCustomer(createCustomerAccountRequest: CreateCustomerAccountRequest): Promise<AccountResponse> {
+    createCustomerAccountRequest.password = await this.jwtService.hashPassword(createCustomerAccountRequest.password);
+
+    const response = await this.accountService.createCustomerAccount(createCustomerAccountRequest)
+
+    return AccountMapper.toAccountResponse(response);
+  }
+
+  async registerDriver(createDriverAccountRequest: CreateDriverAccountRequest): Promise<AccountResponse> {
+    createDriverAccountRequest.password = await this.jwtService.hashPassword(createDriverAccountRequest.password);
+
+    const response = await this.accountService.createDriverAccount(createDriverAccountRequest)
+
+    return AccountMapper.toAccountResponse(response);
   }
 }

@@ -4,9 +4,10 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
+import axios from 'axios';
 
 @Injectable()
 export class S3Service {
@@ -48,6 +49,16 @@ export class S3Service {
 
     const response = await this.s3.send(command);
     return response.Body as Readable;
+  }
+
+  async validateCloundFontEndpoint(url: string): Promise<boolean> {
+    try {
+      const response = await axios.head(url, { timeout: 5000 });
+      return response.status === 200;
+    } catch (error) {
+      Logger.warn(`File không hợp lệ: ${url}`, error?.message || error);
+      return false;
+    }
   }
 
 }

@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Account } from '@prisma/client';
-import { CreateAccountRequest } from './dto/accountRequest.dto';
+import {
+  CreateAccountRequest,
+  CreateCustomerAccountRequest,
+  CreateDriverAccountRequest,
+} from './dto/accountRequest.dto';
 import { AppException } from '../exception/app.exception';
 import { ErrorCode } from '../exception/errorCode.dto';
 import { UuidFactory } from '@nestjs/core/inspector/uuid-factory';
@@ -41,7 +45,53 @@ export class AccountService {
         password: createAccountDto.password,
         role: 'Customer',
       },
-    });  }
+    });
+  }
+
+  async createCustomerAccount(createAccountDto: CreateCustomerAccountRequest): Promise<Account> {
+
+    if( await this.existsByEmail(createAccountDto.email) ) {
+      throw new AppException(ErrorCode.EMAIL_EXIST)
+    }
+
+    return await this.accountRepository.create({
+      data: {
+        email: createAccountDto.email,
+        password: createAccountDto.password,
+        role: 'Customer',
+        Customer: {
+          create: {
+            fullName: createAccountDto.fullName,
+            phoneNumber: createAccountDto.phoneNumber,
+            address: createAccountDto.address
+          }
+        }
+      }
+    })
+
+  }
+
+  async createDriverAccount(createDriverAccountDto: CreateDriverAccountRequest): Promise<Account> {
+    if( await this.existsByEmail(createDriverAccountDto.email) ) {
+      throw new AppException(ErrorCode.EMAIL_EXIST)
+    }
+
+    return await this.accountRepository.create({
+      data: {
+        email: createDriverAccountDto.email,
+        password: createDriverAccountDto.password,
+        role: 'Driver',
+        Driver: {
+          create: {
+            // company: createDriverAccountDto.companyName,
+            vehicleType: createDriverAccountDto.vehicleType,
+            licenseNumber: createDriverAccountDto.liscenseNumber,
+            licenseExpiry: createDriverAccountDto.licenseExpirationDate
+          }
+        }
+      }
+    })
+  }
 
 
   //TODO: === Private ===

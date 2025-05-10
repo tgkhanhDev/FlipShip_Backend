@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  Param,
   Controller,
   Get,
   HttpCode,
@@ -23,7 +24,7 @@ import {
   PaginationParams,
   PaginationResponse,
 } from '../common/utils/response.dto';
-import { Application, ApplicationStatus, Role } from '@prisma/client';
+import { Account, Application, ApplicationStatus, Role } from '@prisma/client';
 import { AccountResponse } from '../account/dto/accountResponse.dto';
 import { Request } from 'express';
 import { JwtUtilsService } from '../auth/jwtUtils.service';
@@ -154,9 +155,9 @@ export class ApplicationPortalController {
       HttpStatus.CREATED,
       response.data,
       'Tạo mô tài khoản thành công',
-      page,
+      pagiParam.page,
       response.total,
-      limit,
+      pagiParam.limit,
     );
   }
 
@@ -167,7 +168,7 @@ export class ApplicationPortalController {
     @Req() req: Request,
     @Body(ValidationPipe) review: StaffReviewApplicationRequest,
     @UploadedFile() senderFile?: Express.Multer.File,
-  ) {
+  ): Promise<ApiResponse<ApplicationResponse>> {
     if (!review.staffNote || review.staffNote.trim() === '') {
       throw new BadRequestException('Ghi chú là bắt buộc');
     } else if (review.applicationStatus == ApplicationStatus.PENDING){
@@ -175,10 +176,51 @@ export class ApplicationPortalController {
     }
     const payload = await this.jwtService.extractAndDecodeToken(req);
 
-    //set sender ID & file Url:
     const senderId = payload.sub;
-    // console.log(`Received review: applicationID=${review.applicationID}, staffNote=${review.staffNote}, staffFileUrl=${review.staffFileUrl}, file=${senderFile?.originalname}`);
+    return ApiResponse.build<ApplicationResponse>(
+      HttpStatus.OK,
+      await this.applicationPortalService.addReviewToApplication(review, senderId),
+      'Review đơn thành công'
+    );
+  }
 
-    return this.applicationPortalService.addReviewToApplication(review, senderId);
+  @Get('/reviewed-application')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async viewReviewedApplication(
+    @Query() query: ViewReviewableApplicationRequestQuery,
+    @Req() req: Request,
+  ): Promise<PaginationResponse<ApplicationResponse[]>> {
+    const { email, page, limit } = query;
+
+    const pagiParam: PaginationParams = {
+      page: parseInt(page + '') || 1,
+      limit: parseInt(limit + '') || 10,
+    };
+
+    const payload = await this.jwtService.extractAndDecodeToken(req);
+
+    const response =
+      await this.applicationPortalService.viewReviewedApplication(
+        email,
+        pagiParam,
+        payload.sub
+      );
+
+    return PaginationResponse.build<ApplicationResponse[]>(
+      HttpStatus.CREATED,
+      response.data,
+      'Coi lịch sử review thành công',
+      pagiParam.page,
+      response.total,
+      pagiParam.limit,
+    );
+  }
+
+
+  //!STEP Này nên thêm vào DB để save lại (qh với bản application)
+  @Post('approve-driver-account/:applicationID')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async registerDriversForApplication(@Param('applicationID') applicationID: string): Promise<Account[]> {
+    return this.applicationPortalService.registerDriversForApplication(applicationID);
   }
 }
