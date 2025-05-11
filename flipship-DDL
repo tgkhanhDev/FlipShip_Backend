@@ -83,6 +83,7 @@ CREATE TABLE "Admin" (
 
 -- Create Status enum for Application
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE "ApplicationType" AS ENUM ('REQUEST_DRIVERS_ACCOUNT', 'OTHER');
 
 -- Create Table Application
 CREATE TABLE "Application" (
@@ -98,6 +99,7 @@ CREATE TABLE "Application" (
     "staffNote" VARCHAR(1000),
     "staffFileUrl" VARCHAR(255),
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
+    "type" "ApplicationType" NOT NULL,
 
     FOREIGN KEY ("senderID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
     FOREIGN KEY ("staffID") REFERENCES "Staff"("staffID") ON DELETE SET NULL

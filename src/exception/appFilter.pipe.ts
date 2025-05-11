@@ -12,6 +12,9 @@ import { Response } from 'express';
 import { ErrorCode, ErrorMessages } from './errorCode.dto';
 import { AppException, AppValidateException } from './app.exception';
 import { ApiResponse } from 'src/common/utils/response.dto';
+import * as fs from 'fs';
+import * as path from 'path';
+import { PrismaClientValidationError } from '@prisma/client/runtime/library';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -42,7 +45,12 @@ export class AppExceptionFilter implements ExceptionFilter {
       }
     }
 
-    if(status === 500) Logger.error(details)
+    if(status === 500) {
+      //Predefined Log to return
+      Logger.error(details)
+      const logFilePath = path.join('', 'logs/errors.log');
+      fs.appendFileSync(logFilePath, `${new Date().toISOString()} - ${details}\n`);
+    }
 
     response.status(status).json({
       status: status,

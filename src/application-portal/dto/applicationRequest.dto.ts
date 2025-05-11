@@ -1,11 +1,13 @@
 import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
-import { ApplicationStatus } from '@prisma/client';
+import { ApplicationStatus, ApplicationType } from '@prisma/client';
 
 export class CreateApplicationRequest {
   senderID: string; //Kh cần truyền ở controller
   @IsNotEmpty({ message: 'Ghi chú là bắt buộc' })
   senderNote: string;
   senderFileUrl?: string;
+  @IsEnum(ApplicationType, { message: 'applicationType must be one of REQUEST_DRIVERS_ACCOUNT, OTHER' })
+  type: ApplicationType
 }
 
 export class StaffReviewApplicationRequest {
@@ -17,7 +19,6 @@ export class StaffReviewApplicationRequest {
 
   @IsEnum(ApplicationStatus, { message: 'Trạng thái đơn phải thuộc: APPROVED, REJECTED' })
   applicationStatus: ApplicationStatus
-
 
   @IsString({ message: 'staffFileUrl must be a string' })
   @IsOptional()

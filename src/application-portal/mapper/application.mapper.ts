@@ -21,6 +21,7 @@ export class ApplicationMapper {
       Account: application.Account,
       Staff: application.Staff,
       status: application.status,
+      type: application.type
     };
   }
 }

@@ -96,6 +96,7 @@ model Application {
   staffNote     String?           @db.VarChar(1000)
   staffFileUrl  String?           @db.VarChar(255)
   status        ApplicationStatus @default(PENDING)
+  type          ApplicationType
   Account       Account           @relation(fields: [senderID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
   Staff         Staff?            @relation(fields: [staffID], references: [staffID], onUpdate: NoAction)
 }
@@ -113,4 +114,9 @@ enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum ApplicationType {
+  REQUEST_DRIVERS_ACCOUNT
+  OTHER
 }

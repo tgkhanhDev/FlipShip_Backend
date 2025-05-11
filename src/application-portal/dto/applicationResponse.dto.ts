@@ -1,4 +1,4 @@
-import { ApplicationStatus, Account, Staff } from '@prisma/client';
+import { ApplicationStatus, Account, Staff, ApplicationType } from '@prisma/client';
 
 export class ApplicationResponse {
   applicationID: string;
@@ -13,4 +13,5 @@ export class ApplicationResponse {
   Account: Account;
   Staff: Staff | null;
   status: ApplicationStatus;
+  type: ApplicationType;
 }

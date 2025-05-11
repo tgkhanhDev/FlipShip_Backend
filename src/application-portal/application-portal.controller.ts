@@ -32,7 +32,7 @@ import { ErrorCode } from '../exception/errorCode.dto';
 import { AppException } from '../exception/app.exception';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApplicationResponse } from './dto/applicationResponse.dto';
-import { RoleMatch } from '../common/utils/metadata';
+import { RoleMatch, Public } from '../common/utils/metadata';
 import { ValidationPipe } from '../validators/validation.pipe';
 
 @Controller('service')
@@ -53,19 +53,21 @@ export class ApplicationPortalController {
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('senderFile'))
   async createApplication(
-    @Body('senderNote') senderNote: string,
+    @Body() createApplicationRequest: CreateApplicationRequest,
     @UploadedFile() senderFile: Express.Multer.File,
     @Req() req: Request,
   ): Promise<ApiResponse<any>> {
-    if (!senderNote || senderNote.trim() === '') {
-      throw new BadRequestException('Ghi chú là bắt buộc');
-    }
+    // if (!senderNote || senderNote.trim() === '') {
+    //   throw new BadRequestException('Ghi chú là bắt buộc');
+    // }
 
     const payload = await this.jwtService.extractAndDecodeToken(req);
     //set sender ID & file Url:
-    const createApplicationDto = new CreateApplicationRequest();
-    createApplicationDto.senderID = payload.sub;
-    createApplicationDto.senderNote = senderNote;
+    // const createApplicationDto = new CreateApplicationRequest();
+    // createApplicationDto.senderID = payload.sub;
+    // createApplicationDto.senderNote = senderNote;
+    createApplicationRequest.senderID = payload.sub;
+
 
     if (senderFile) {
       if (!this.ALLOWED_MIME_TYPES.includes(senderFile.mimetype)) {
@@ -83,12 +85,12 @@ export class ApplicationPortalController {
         senderFile.buffer,
         senderFile.mimetype,
       );
-      createApplicationDto.senderFileUrl = url;
+      createApplicationRequest.senderFileUrl = url;
     }
 
     const app =
       await this.applicationPortalService.createApplication(
-        createApplicationDto,
+        createApplicationRequest,
       );
     return ApiResponse.build<any>(
       HttpStatus.CREATED,
@@ -97,7 +99,7 @@ export class ApplicationPortalController {
     );
   }
 
-  @Get('/sent-application')
+  @Get('/application/sent')
   async viewSenderApplicationRequest(
     @Query() query: ViewApplicationRequestQuery,
     @Req() req: Request,
@@ -129,11 +131,10 @@ export class ApplicationPortalController {
     );
   }
 
-  @Get('/reviewable-application')
+  @Get('/application/reviewable')
   @RoleMatch(Role.Admin, Role.Staff)
   async viewReviewableApplication(
-    @Query() query: ViewReviewableApplicationRequestQuery,
-    @Req() req: Request,
+    @Query() query: ViewReviewableApplicationRequestQuery
   ): Promise<PaginationResponse<ApplicationResponse[]>> {
     const { email, page, limit } = query;
 
@@ -161,7 +162,7 @@ export class ApplicationPortalController {
     );
   }
 
-  @Post('/reviewable-application')
+  @Post('/application/reviewable')
   @RoleMatch(Role.Admin, Role.Staff)
   @UseInterceptors(FileInterceptor('senderFile'))
   async addReviewToApplication(
@@ -184,7 +185,57 @@ export class ApplicationPortalController {
     );
   }
 
-  @Get('/reviewed-application')
+  @Get('/application/assigned')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async viewAssignedApplication(
+    @Query() query: ViewReviewableApplicationRequestQuery,
+    @Req() req: Request,
+  ): Promise<PaginationResponse<ApplicationResponse[]>>{
+    const { email, page, limit } = query;
+
+    const payload = await this.jwtService.extractAndDecodeToken(req);
+    const senderID = payload.sub;
+
+    const pagiParam: PaginationParams = {
+      page: parseInt(page + '') || 1,
+      limit: parseInt(limit + '') || 10,
+    };
+
+    const response =
+      await this.applicationPortalService.viewAssignedApplication(
+        email,
+        payload.sub,
+        pagiParam,
+      );
+
+    return PaginationResponse.build<ApplicationResponse[]>(
+      HttpStatus.CREATED,
+      response.data,
+      'Tạo mô tài khoản thành công',
+      pagiParam.page,
+      response.total,
+      pagiParam.limit,
+    );
+  }
+
+  @Post('/application/self-assign/:applicationID')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async selfAssignApplication(
+    @Param('applicationID') applicationID: string,
+    @Query('isAssigned') isAssigned: string,
+    @Req() req: Request,
+  ): Promise<ApiResponse<ApplicationResponse>> {
+    const payload = await this.jwtService.extractAndDecodeToken(req);
+    const staffID = payload.sub;
+    return ApiResponse.build<ApplicationResponse>(
+      HttpStatus.OK,
+      await this.applicationPortalService.selfAssignApplication(applicationID, staffID, isAssigned == 'true'),
+      'Điều chỉnh đơn thành công'
+    );
+  }
+
+
+  @Get('/application/reviewed')
   @RoleMatch(Role.Admin, Role.Staff)
   async viewReviewedApplication(
     @Query() query: ViewReviewableApplicationRequestQuery,
@@ -218,9 +269,19 @@ export class ApplicationPortalController {
 
 
   //!STEP Này nên thêm vào DB để save lại (qh với bản application)
-  @Post('approve-driver-account/:applicationID')
+  @Post('/application/approve-driver-account/:applicationID')
   @RoleMatch(Role.Admin, Role.Staff)
   async registerDriversForApplication(@Param('applicationID') applicationID: string): Promise<Account[]> {
     return this.applicationPortalService.registerDriversForApplication(applicationID);
+  }
+
+  @Get('/application/lookup-driver/:applicationID')
+  @Public()
+  async lookUpApplicationDriver(@Param('applicationID') applicationID: string): Promise<ApiResponse<Account[]>> {
+    return ApiResponse.build<Account[]>(
+      HttpStatus.OK,
+      await this.applicationPortalService.lookupApplicationDrivers(applicationID),
+      'View thông tin đơn thành công',
+    );
   }
 }
