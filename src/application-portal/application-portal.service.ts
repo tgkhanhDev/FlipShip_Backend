@@ -26,6 +26,7 @@ import { JwtUtilsService } from '../auth/jwtUtils.service';
 export class ApplicationPortalService {
   private readonly applicationRepository;
   private readonly staffRepository;
+  private readonly companyRepository;
   private readonly HEADER_ARRAY: string[];
 
   constructor(
@@ -36,6 +37,7 @@ export class ApplicationPortalService {
   ) {
     this.applicationRepository = repository.application;
     this.staffRepository = repository.staff;
+    this.companyRepository = repository.company
     this.HEADER_ARRAY = process.env.EXCEL_HEADER_VALIDATION_ARRAY!.split(',');
   }
 
@@ -483,8 +485,10 @@ export class ApplicationPortalService {
     return data;
   }
 
+  //REFACTOR -> approve -> create account -> xlsx -> response
   async registerDriversForApplication(
     applicationID: string,
+    companyID: string
   ): Promise<Account[]> {
     const application = await this.applicationRepository.findUnique({
       where: { applicationID },
@@ -494,12 +498,19 @@ export class ApplicationPortalService {
       throw new BadRequestException('Đơn không tồn tại');
     }
 
-    if (
-      application.status === ApplicationStatus.REJECTED ||
-      application.status === ApplicationStatus.PENDING
-    ) {
-      throw new BadRequestException('Trạng thái đơn phải là: APPROVED');
-    }
+    const company = await this.companyRepository.findUnique({
+      where: { companyID },
+    })
+
+    if(!company) throw new BadRequestException('Công ty không tồn tại');
+
+
+    // if (
+    //   application.status === ApplicationStatus.REJECTED ||
+    //   application.status === ApplicationStatus.PENDING
+    // ) {
+    //   throw new BadRequestException('Trạng thái đơn phải là: APPROVED');
+    // }
 
     if (
       !application.senderFileUrl ||
@@ -528,12 +539,17 @@ export class ApplicationPortalService {
 
         return await this.accountService.createDriverAccount({
           email: item[this.HEADER_ARRAY[1].toString()],
+          fullName: item[this.HEADER_ARRAY[2].toString()],
+          identityNumber: item[this.HEADER_ARRAY[3].toString()],
           password: hashPassword,
           liscenseNumber: item[this.HEADER_ARRAY[4].toString()].toString(),
           licenseExpirationDate: new Date(
             XLSX.SSF.format('yyyy-mm-dd', rawDate),
           ),
           vehicleType: item[this.HEADER_ARRAY[6].toString()],
+          licenseLevel: item[this.HEADER_ARRAY[7].toString()],
+          phoneNumber: item[this.HEADER_ARRAY[8].toString()],
+          companyID: companyID
         });
       }),
     );

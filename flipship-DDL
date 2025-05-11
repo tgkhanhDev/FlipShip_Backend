@@ -19,10 +19,10 @@ CREATE TABLE "Account" (
 CREATE TABLE "Customer" (
     "customerID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
-    "fullName" VARCHAR(255),
     "phoneNumber" VARCHAR(20),
-    address TEXT,
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "fullName" VARCHAR(255),
+    "address" VARCHAR(500),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
 );
 
@@ -30,10 +30,12 @@ CREATE TABLE "Customer" (
 CREATE TABLE "Company" (
     "companyID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
+    "picFullName" VARCHAR(255),
     "companyName" VARCHAR(255),
     "taxCode" VARCHAR(100),
     "contactEmail" VARCHAR(255),
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(50) DEFAULT 'inactive',
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
 );
 
@@ -41,22 +43,32 @@ CREATE TABLE "Company" (
 CREATE TABLE "Coordinator" (
     "coordinatorID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
-    department VARCHAR(255),
-    "employeeCode" VARCHAR(100),
-    "assignedRegion" VARCHAR(255),
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+    "companyID" UUID NOT NULL,
+    "fullName" VARCHAR(255),
+    "employeeCode" VARCHAR(15),
+    "phoneNumber" VARCHAR(15),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("companyID") REFERENCES "Company"("companyID") ON DELETE SET NULL
 );
 
 -- Table Driver
 CREATE TABLE "Driver" (
     "driverID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
+    "companyID" UUID NOT NULL,
+
     "licenseNumber" VARCHAR(50) NOT NULL,
     "vehicleType" VARCHAR(100), -- e.g., Truck, Van, Motorcycle
     "licenseExpiry" DATE,
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+    "phoneNumber" VARCHAR(15),
+    "licenseLevel" VARCHAR(15),
+    "fullName" VARCHAR(100),
+    "identityNumber" VARCHAR(100),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("companyID") REFERENCES "Company"("companyID") ON DELETE SET NULL
+
 );
 
 -- Table Staff
@@ -83,7 +95,7 @@ CREATE TABLE "Admin" (
 
 -- Create Status enum for Application
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
-CREATE TYPE "ApplicationType" AS ENUM ('REQUEST_DRIVERS_ACCOUNT', 'OTHER');
+CREATE TYPE "ApplicationType" AS ENUM ('REQUEST_DRIVERS_ACCOUNT', 'REQUEST_BECOME_COMPANY', 'OTHER');
 
 -- Create Table Application
 CREATE TABLE "Application" (
@@ -104,3 +116,4 @@ CREATE TABLE "Application" (
     FOREIGN KEY ("senderID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
     FOREIGN KEY ("staffID") REFERENCES "Staff"("staffID") ON DELETE SET NULL
 );
+

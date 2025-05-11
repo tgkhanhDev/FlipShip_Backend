@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { Account } from '@prisma/client';
+import { Account, Company } from '@prisma/client';
 import {
   CreateAccountRequest,
   CreateCustomerAccountRequest,
@@ -14,11 +14,13 @@ import { UuidFactory } from '@nestjs/core/inspector/uuid-factory';
 @Injectable()
 export class AccountService {
   private readonly accountRepository;
+  private readonly companyRepository;
 
   constructor(
     private readonly repository: PrismaPostgresService,
   ) {
     this.accountRepository = repository.account;
+    this.companyRepository = repository.company
   }
 
   findAll() {
@@ -76,6 +78,14 @@ export class AccountService {
       throw new AppException(ErrorCode.EMAIL_EXIST)
     }
 
+    const company: Company = await this.companyRepository.findUnique({
+      where: {
+        companyID: createDriverAccountDto.companyID
+      }
+    })
+    if (!company) throw new BadRequestException('Company does not exist');
+
+
     return await this.accountRepository.create({
       data: {
         email: createDriverAccountDto.email,
@@ -83,10 +93,18 @@ export class AccountService {
         role: 'Driver',
         Driver: {
           create: {
-            // company: createDriverAccountDto.companyName,
             vehicleType: createDriverAccountDto.vehicleType,
+            phoneNumber: createDriverAccountDto.phoneNumber,
+            licenseLevel: createDriverAccountDto.licenseLevel,
+            fullName: createDriverAccountDto.fullName,
+            identityNumber: createDriverAccountDto.identityNumber.toString(),
             licenseNumber: createDriverAccountDto.liscenseNumber,
-            licenseExpiry: createDriverAccountDto.licenseExpirationDate
+            licenseExpiry: createDriverAccountDto.licenseExpirationDate,
+            Company: {
+              connect: {
+                companyID: company.companyID
+              }
+            }
           }
         }
       }

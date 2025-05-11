@@ -25,32 +25,38 @@ model Account {
 }
 
 model Company {
-  companyID    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID    String?   @unique @db.Uuid
-  companyName  String?   @db.VarChar(255)
-  taxCode      String?   @db.VarChar(100)
-  contactEmail String?   @db.VarChar(255)
-  createdAt    DateTime? @default(now()) @db.Timestamptz(6)
-  Account      Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  companyID    String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID    String?       @unique @db.Uuid
+  picFullName  String?       @db.VarChar(255)
+  companyName  String?       @db.VarChar(255)
+  taxCode      String?       @db.VarChar(100)
+  contactEmail String?       @db.VarChar(255)
+  updatedAt    DateTime?     @default(now()) @db.Timestamptz(6)
+  status       String?       @default("inactive") @db.VarChar(50)
+  Account      Account?      @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  Coordinator  Coordinator[]
+  Driver       Driver[]
 }
 
 model Coordinator {
-  coordinatorID  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID      String?   @unique @db.Uuid
-  department     String?   @db.VarChar(255)
-  employeeCode   String?   @db.VarChar(100)
-  assignedRegion String?   @db.VarChar(255)
-  createdAt      DateTime? @default(now()) @db.Timestamptz(6)
-  Account        Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  coordinatorID String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID     String?   @unique @db.Uuid
+  companyID     String    @db.Uuid
+  fullName      String?   @db.VarChar(255)
+  employeeCode  String?   @db.VarChar(15)
+  phoneNumber   String?   @db.VarChar(15)
+  updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
+  Account       Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  Company       Company   @relation(fields: [companyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model Customer {
   customerID  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   accountID   String?   @unique @db.Uuid
-  fullName    String?   @db.VarChar(255)
   phoneNumber String?   @db.VarChar(20)
-  address     String?
-  createdAt   DateTime? @default(now()) @db.Timestamptz(6)
+  fullName    String?   @db.VarChar(255)
+  address     String?   @db.VarChar(500)
+  updatedAt   DateTime? @default(now()) @db.Timestamptz(6)
   Account     Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
 }
 
@@ -65,13 +71,19 @@ model Admin {
 }
 
 model Driver {
-  driverID      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID     String?   @unique @db.Uuid
-  licenseNumber String    @db.VarChar(50)
-  vehicleType   String?   @db.VarChar(100)
-  licenseExpiry DateTime? @db.Date
-  createdAt     DateTime? @default(now()) @db.Timestamptz(6)
-  Account       Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  driverID       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID      String?   @unique @db.Uuid
+  companyID      String    @db.Uuid
+  licenseNumber  String    @db.VarChar(50)
+  vehicleType    String?   @db.VarChar(100)
+  licenseExpiry  DateTime? @db.Date
+  phoneNumber    String?   @db.VarChar(15)
+  updatedAt      DateTime? @default(now()) @db.Timestamptz(6)
+  licenseLevel   String?   @db.VarChar
+  fullName       String?   @db.VarChar
+  identityNumber String?   @db.VarChar
+  Account        Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  Company        Company   @relation(fields: [companyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model Staff {
@@ -118,5 +130,6 @@ enum ApplicationStatus {
 
 enum ApplicationType {
   REQUEST_DRIVERS_ACCOUNT
+  REQUEST_BECOME_COMPANY
   OTHER
 }

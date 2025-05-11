@@ -271,8 +271,8 @@ export class ApplicationPortalController {
   //!STEP Này nên thêm vào DB để save lại (qh với bản application)
   @Post('/application/approve-driver-account/:applicationID')
   @RoleMatch(Role.Admin, Role.Staff)
-  async registerDriversForApplication(@Param('applicationID') applicationID: string): Promise<Account[]> {
-    return this.applicationPortalService.registerDriversForApplication(applicationID);
+  async registerDriversForApplication(@Param('applicationID') applicationID: string, @Query('companyID') companyID: string): Promise<Account[]> {
+    return this.applicationPortalService.registerDriversForApplication(applicationID, companyID);
   }
 
   @Get('/application/lookup-driver/:applicationID')

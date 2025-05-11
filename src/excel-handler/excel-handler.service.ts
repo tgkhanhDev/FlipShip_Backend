@@ -5,6 +5,7 @@ import axios from 'axios';
 import * as process from 'node:process';
 import { AppException } from '../exception/app.exception';
 import { ErrorCode } from '../exception/errorCode.dto';
+import { S3Service } from '../thirdParty/s3/s3.service';
 
 @Injectable()
 export class ExcelHandlerService {
@@ -12,7 +13,9 @@ export class ExcelHandlerService {
   private readonly HEADER_VALID_ARRAY: string[];
   private readonly ROW_SKIP: string;
 
-  constructor() {
+  constructor(
+    private readonly s3Service: S3Service
+  ) {
     this.HEADER_RANGE = process.env.EXCEL_HEADER_RANGE!;
     this.HEADER_VALID_ARRAY = process.env.EXCEL_HEADER_VALIDATION_ARRAY!.split(',');
     this.ROW_SKIP = process.env.ROW_START_SCAN!;
@@ -82,6 +85,21 @@ export class ExcelHandlerService {
     this.validateHeader(rawHeaders);
 
     return "File hợp lệ";
+  }
+
+  async generateExcelAndUploadToS3(data: Record<string, any>[]): Promise<string> {
+    const buffer = await this.generateExcelFile(data);
+    const key = `${Date.now()}-'MADON'.xlsx`;
+    const url = await this.s3Service.uploadFile(key, buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return url;
+  }
+
+
+  protected async generateExcelFile(data: Record<string, any>[]): Promise<Buffer> {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 
   private validateHeader(headers: string[]): void {

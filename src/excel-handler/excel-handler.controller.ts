@@ -70,4 +70,10 @@ export class ExcelHandlerController {
     }
     return ApiResponse.build<null>(HttpStatus.OK, null, message);
   }
+
+  @Post('/generate-excel')
+  @Public()
+  async generateExcelFile(@Body() data: Record<string, any>[]){
+    return this.excelHandlerService.generateExcelAndUploadToS3(data);
+  }
 }

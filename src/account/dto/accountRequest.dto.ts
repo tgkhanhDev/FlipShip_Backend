@@ -1,4 +1,4 @@
-import { IsDate, IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsDate, IsEmail, IsNotEmpty, IsString, IsUUID, MinLength } from 'class-validator';
 import { Role } from '@prisma/client';
 import { Type } from 'class-transformer';
 
@@ -34,4 +34,19 @@ export class CreateDriverAccountRequest extends CreateAccountRequest {
   @IsDate()
   @Type(() => Date)
   licenseExpirationDate: Date;
+
+  @IsString()
+  phoneNumber: string;
+
+  @IsUUID()
+  companyID: string;
+
+  @IsString()
+  licenseLevel: string
+
+  @IsString()
+  fullName: string
+
+  @IsString()
+  identityNumber: string
 }
