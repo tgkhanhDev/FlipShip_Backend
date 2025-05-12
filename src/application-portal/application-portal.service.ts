@@ -8,6 +8,7 @@ import {
   Staff,
 } from '@prisma/client';
 import {
+  ApproveDriverRequestApplicationRequest,
   CreateApplicationRequest,
   StaffReviewApplicationRequest,
 } from './dto/applicationRequest.dto';
@@ -21,6 +22,7 @@ import { AccountService } from '../account/account.service';
 import * as process from 'node:process';
 import * as XLSX from 'xlsx';
 import { JwtUtilsService } from '../auth/jwtUtils.service';
+import { DriverAccountTemplateDto } from '../excel-handler/dtos/driverAccount.dto';
 
 @Injectable()
 export class ApplicationPortalService {
@@ -512,7 +514,9 @@ export class ApplicationPortalService {
     //   throw new BadRequestException('Trạng thái đơn phải là: APPROVED');
     // }
 
-    if (
+    if(application.senderFileUrl == null)
+      throw new BadRequestException('File khôn hợp lệ');
+    else if (
       !application.senderFileUrl ||
       !(await this.excelHandlerService.validateExcelFile(
         application.senderFileUrl,
@@ -555,6 +559,105 @@ export class ApplicationPortalService {
     );
 
     return accountList;
+  }
+
+  //Check Mail trung & rollback
+  async approveDriverRequestApplication(
+    approveDriverRequestApplicationRequest: ApproveDriverRequestApplicationRequest
+  ): Promise<ApplicationResponse>{
+
+    const { applicationID, staffNote, companyID } = approveDriverRequestApplicationRequest
+
+    const application = await this.applicationRepository.findUnique({
+      where: { applicationID },
+    });
+
+    if (!application) {
+      throw new BadRequestException('Đơn không tồn tại');
+    }
+
+    const company = await this.companyRepository.findUnique({
+      where: { companyID },
+    })
+
+    if(!company) throw new BadRequestException('Công ty không tồn tại');
+
+    if(application.senderFileUrl == null)
+      throw new BadRequestException('File khôn hợp lệ');
+    else if (
+      !application.senderFileUrl ||
+      !(await this.excelHandlerService.validateExcelFile(
+        application.senderFileUrl,
+      ))
+    ) {
+      throw new BadRequestException(
+        'File không hợp lệ, phải có định dạng xlsx url',
+      );
+    }
+
+    //extract data from excel
+    const data = await this.excelHandlerService.readExcelFromUrl(
+      application.senderFileUrl,
+    );
+
+    let current = 1;
+    const accountList: DriverAccountTemplateDto[] = await Promise.all(
+      data.map(async (item) => {
+        const rawDate = item[this.HEADER_ARRAY[5].toString()];
+        const generatedRandomPassword = '123456';
+        const hashPassword = await this.jwtService.hashPassword(
+          generatedRandomPassword,
+        );
+
+        //Insert to File to Response to User
+        const account: Account | any = await this.accountService.createDriverAccount({
+          email: item[this.HEADER_ARRAY[1].toString()],
+          fullName: item[this.HEADER_ARRAY[2].toString()],
+          identityNumber: item[this.HEADER_ARRAY[3].toString()],
+          password: hashPassword,
+          liscenseNumber: item[this.HEADER_ARRAY[4].toString()].toString(),
+          licenseExpirationDate: new Date(
+            XLSX.SSF.format('yyyy-mm-dd', rawDate),
+          ),
+          vehicleType: item[this.HEADER_ARRAY[6].toString()],
+          licenseLevel: item[this.HEADER_ARRAY[7].toString()],
+          phoneNumber: item[this.HEADER_ARRAY[8].toString()],
+          companyID: companyID
+        });
+
+        const templateAccount : DriverAccountTemplateDto = {
+          no: current,
+          email: account.email,
+          password: generatedRandomPassword,
+          licenseNumber: account.Driver.licenseNumber,
+          vehicleType: account.Driver.vehicleType,
+          licenseExpiry: new Date(account.Driver.licenseExpiry).toISOString(),
+          phoneNumber: account.Driver.phoneNumber,
+          licenseLevel: account.Driver.licenseLevel,
+          fullName: account.Driver.fullName,
+          identityNumber: account.Driver.identityNumber,
+        }
+        current++;
+
+        return templateAccount;
+      }),
+    );
+
+    //URL
+    const excelUrl = await this.excelHandlerService.generateExcelAndUploadToS3(accountList);
+
+    const result: any = await this.applicationRepository.update({
+      where: { applicationID },
+      data: {
+        status: ApplicationStatus.APPROVED,
+        staffNote: staffNote,
+        staffFileUrl: excelUrl
+      },
+    });
+
+
+    return ApplicationMapper.toApplicationResponse(result);
+
   }
 
 

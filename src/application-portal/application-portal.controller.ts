@@ -15,6 +15,7 @@ import {
 import { ApplicationPortalService } from './application-portal.service';
 import { S3Service } from '../thirdParty/s3/s3.service';
 import {
+  ApproveDriverRequestApplicationRequest,
   CreateApplicationRequest, StaffReviewApplicationRequest,
   ViewApplicationRequestQuery,
   ViewReviewableApplicationRequestQuery,
@@ -284,4 +285,18 @@ export class ApplicationPortalController {
       'View thông tin đơn thành công',
     );
   }
+
+  @Post('/application/approve-driver-request')
+  @RoleMatch(Role.Admin, Role.Staff)
+  async approveDriverRequestApplication(
+    @Req() req: Request,
+    @Body() approveDriverRequestApplicationRequest: ApproveDriverRequestApplicationRequest
+  ){
+    return ApiResponse.build<ApplicationResponse>(
+      HttpStatus.OK,
+      await this.applicationPortalService.approveDriverRequestApplication(approveDriverRequestApplicationRequest),
+      'Duyệt yêu cầu thành công'
+    )
+  }
+
 }

@@ -20,7 +20,7 @@ export class AccountService {
     private readonly repository: PrismaPostgresService,
   ) {
     this.accountRepository = repository.account;
-    this.companyRepository = repository.company
+    this.companyRepository = repository.company;
   }
 
   findAll() {
@@ -37,9 +37,9 @@ export class AccountService {
 
   async createAccount(createAccountDto: CreateAccountRequest): Promise<Account> {
 
-   if( await this.existsByEmail(createAccountDto.email) ) {
-     throw new AppException(ErrorCode.EMAIL_EXIST)
-   }
+    if (await this.existsByEmail(createAccountDto.email)) {
+      throw new AppException(ErrorCode.EMAIL_EXIST);
+    }
 
     return this.accountRepository.create({
       data: {
@@ -52,8 +52,8 @@ export class AccountService {
 
   async createCustomerAccount(createAccountDto: CreateCustomerAccountRequest): Promise<Account> {
 
-    if( await this.existsByEmail(createAccountDto.email) ) {
-      throw new AppException(ErrorCode.EMAIL_EXIST)
+    if (await this.existsByEmail(createAccountDto.email)) {
+      throw new AppException(ErrorCode.EMAIL_EXIST);
     }
 
     return await this.accountRepository.create({
@@ -65,26 +65,28 @@ export class AccountService {
           create: {
             fullName: createAccountDto.fullName,
             phoneNumber: createAccountDto.phoneNumber,
-            address: createAccountDto.address
-          }
-        }
-      }
-    })
+            address: createAccountDto.address,
+          },
+        },
+      },
+    });
 
   }
 
   async createDriverAccount(createDriverAccountDto: CreateDriverAccountRequest): Promise<Account> {
-    if( await this.existsByEmail(createDriverAccountDto.email) ) {
-      throw new AppException(ErrorCode.EMAIL_EXIST)
+    const existingAccount = await this.accountRepository.findUnique({
+      where: { email: createDriverAccountDto.email },
+    });
+    if (existingAccount) {
+      throw new BadRequestException(`Email already exists: ${createDriverAccountDto.email}`);
     }
 
     const company: Company = await this.companyRepository.findUnique({
       where: {
-        companyID: createDriverAccountDto.companyID
-      }
-    })
+        companyID: createDriverAccountDto.companyID,
+      },
+    });
     if (!company) throw new BadRequestException('Company does not exist');
-
 
     return await this.accountRepository.create({
       data: {
@@ -102,13 +104,29 @@ export class AccountService {
             licenseExpiry: createDriverAccountDto.licenseExpirationDate,
             Company: {
               connect: {
-                companyID: company.companyID
-              }
-            }
-          }
-        }
+                companyID: company.companyID,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+        password: true,
+        role: true,
+        Driver: {
+          select: {
+            licenseNumber: true,
+            vehicleType: true,
+            licenseExpiry: true,
+            phoneNumber: true,
+            licenseLevel: true,
+            fullName: true,
+            identityNumber: true,
+          },
+        },
       }
-    })
+    });
   }
 
 
@@ -120,7 +138,7 @@ export class AccountService {
         where: { email },
       });
     } catch (error) {
-      throw new AppException(ErrorCode.AUTH_INVALID)
+      throw new AppException(ErrorCode.AUTH_INVALID);
     }
   }
 
@@ -129,9 +147,36 @@ export class AccountService {
       where: { email },
       select: { accountID: true }, // Optimize by selecting only needed fields
     });
-    if(account){
-      return true
+    if (account) {
+      return true;
     }
     return false;
+  }
+
+  //TODO: XOA LIEN
+  async getAllDriverAccount(): Promise<Account> {
+    return await this.accountRepository.findMany({
+      where: {
+        role: 'Driver',
+      },
+      select: {
+        email: true,
+        password: true,
+        role: true,
+        Driver: {
+          select: {
+            licenseNumber: true,
+            vehicleType: true,
+            licenseExpiry: true,
+            phoneNumber: true,
+            licenseLevel: true,
+            fullName: true,
+            identityNumber: true,
+          },
+        },
+      },
+    });
+
+
   }
 }
