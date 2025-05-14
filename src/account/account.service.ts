@@ -129,20 +129,7 @@ export class AccountService {
     });
   }
 
-
-  //TODO: === Private ===
-
-  private async findAccountByEmail(email: string): Promise<Account> {
-    try {
-      return await this.accountRepository.findUniqueOrThrow({
-        where: { email },
-      });
-    } catch (error) {
-      throw new AppException(ErrorCode.AUTH_INVALID);
-    }
-  }
-
-  private async existsByEmail(email: string): Promise<boolean> {
+  async existsByEmail(email: string): Promise<boolean> {
     const account = await this.accountRepository.findUnique({
       where: { email },
       select: { accountID: true }, // Optimize by selecting only needed fields
@@ -153,30 +140,4 @@ export class AccountService {
     return false;
   }
 
-  //TODO: XOA LIEN
-  async getAllDriverAccount(): Promise<Account> {
-    return await this.accountRepository.findMany({
-      where: {
-        role: 'Driver',
-      },
-      select: {
-        email: true,
-        password: true,
-        role: true,
-        Driver: {
-          select: {
-            licenseNumber: true,
-            vehicleType: true,
-            licenseExpiry: true,
-            phoneNumber: true,
-            licenseLevel: true,
-            fullName: true,
-            identityNumber: true,
-          },
-        },
-      },
-    });
-
-
-  }
 }

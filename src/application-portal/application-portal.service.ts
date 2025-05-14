@@ -1,9 +1,16 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import {
   Account,
   Application,
-  ApplicationStatus, ApplicationType,
+  ApplicationStatus,
+  ApplicationType,
   Role,
   Staff,
 } from '@prisma/client';
@@ -29,6 +36,7 @@ export class ApplicationPortalService {
   private readonly applicationRepository;
   private readonly staffRepository;
   private readonly companyRepository;
+  private readonly accountRepository;
   private readonly HEADER_ARRAY: string[];
 
   constructor(
@@ -39,7 +47,8 @@ export class ApplicationPortalService {
   ) {
     this.applicationRepository = repository.application;
     this.staffRepository = repository.staff;
-    this.companyRepository = repository.company
+    this.companyRepository = repository.company;
+    this.accountRepository = repository.account;
     this.HEADER_ARRAY = process.env.EXCEL_HEADER_VALIDATION_ARRAY!.split(',');
   }
 
@@ -144,8 +153,8 @@ export class ApplicationPortalService {
           ...(email ? { email: { contains: email, mode: 'insensitive' } } : {}),
         },
         staffID: {
-          equals: null
-        }
+          equals: null,
+        },
       };
 
       const [applications, total] = await Promise.all([
@@ -176,7 +185,7 @@ export class ApplicationPortalService {
               },
             },
             Staff: true,
-            type: true
+            type: true,
           },
         }),
         this.applicationRepository.count({ where }),
@@ -269,9 +278,9 @@ export class ApplicationPortalService {
       const staff = this.staffRepository.findUnique({
         where: {
           accountID: staffAccountID,
-        }
-      })
-      if(!staff) throw new BadRequestException('Nhân viên không tồn tại')
+        },
+      });
+      if (!staff) throw new BadRequestException('Nhân viên không tồn tại');
 
       // Build the where clause
       const where = {
@@ -281,11 +290,11 @@ export class ApplicationPortalService {
         },
         Staff: {
           isNot: null,
-          staffID: staff.staffID
+          staffID: staff.staffID,
         },
         reviewedAt: {
-          equals: null
-        }
+          equals: null,
+        },
       };
 
       const [applications, total] = await Promise.all([
@@ -316,7 +325,7 @@ export class ApplicationPortalService {
               },
             },
             Staff: true,
-            type: true
+            type: true,
           },
         }),
         this.applicationRepository.count({ where }),
@@ -341,7 +350,7 @@ export class ApplicationPortalService {
     staffReviewApplicationRequest: StaffReviewApplicationRequest,
     reviewerID: string,
   ): Promise<ApplicationResponse> {
-    const { applicationID, applicationStatus, staffFileUrl, staffNote,  } =
+    const { applicationID, applicationStatus, staffFileUrl, staffNote } =
       staffReviewApplicationRequest;
 
     const application: Application =
@@ -361,28 +370,34 @@ export class ApplicationPortalService {
     if (!staff) throw new BadRequestException('Nhân viên không tồn tại');
 
     //check Type to ensure DRIVER REQUEST MUST HAVE URL
-    if (application.type === ApplicationType.REQUEST_DRIVERS_ACCOUNT
-      && applicationStatus === ApplicationStatus.APPROVED
-      && !staffReviewApplicationRequest.staffFileUrl ) {
-      throw new BadRequestException('Đơn yêu cầu tài xế nếu duyệt phải có file');
+    if (
+      application.type === ApplicationType.REQUEST_DRIVERS_ACCOUNT &&
+      applicationStatus === ApplicationStatus.APPROVED &&
+      !staffReviewApplicationRequest.staffFileUrl
+    ) {
+      throw new BadRequestException(
+        'Đơn yêu cầu tài xế nếu duyệt phải có file',
+      );
     }
     try {
-      const persistedApplication: any = await this.applicationRepository.update({
-        where: {
-          applicationID: staffReviewApplicationRequest.applicationID,
-        },
-        data: {
-          status: applicationStatus,
-          Staff: {
-            connect: {
-              staffID: staff.staffID,
-            },
+      const persistedApplication: any = await this.applicationRepository.update(
+        {
+          where: {
+            applicationID: staffReviewApplicationRequest.applicationID,
           },
-          staffNote: staffNote,
-          staffFileUrl: staffFileUrl ? staffFileUrl : null,
-          reviewedAt: new Date(),
+          data: {
+            status: applicationStatus,
+            Staff: {
+              connect: {
+                staffID: staff.staffID,
+              },
+            },
+            staffNote: staffNote,
+            staffFileUrl: staffFileUrl ? staffFileUrl : null,
+            reviewedAt: new Date(),
+          },
         },
-      });
+      );
 
       return ApplicationMapper.toApplicationResponse(persistedApplication);
     } catch (error) {
@@ -449,7 +464,7 @@ export class ApplicationPortalService {
               },
             },
             Staff: false,
-            type: true
+            type: true,
           },
         }),
         this.applicationRepository.count({ where }),
@@ -477,20 +492,23 @@ export class ApplicationPortalService {
     if (!application) {
       throw new BadRequestException('Đơn không tồn tại');
     } else if (application.type != ApplicationType.REQUEST_DRIVERS_ACCOUNT) {
-      throw new BadRequestException('Loại đơn không phải là đơn yêu cầu tài xế');
+      throw new BadRequestException(
+        'Loại đơn không phải là đơn yêu cầu tài xế',
+      );
     }
 
     const data = await this.excelHandlerService.readExcelFromUrl(
       application.senderFileUrl,
-    )
+    );
 
     return data;
   }
 
   //REFACTOR -> approve -> create account -> xlsx -> response
+  //Deprecated
   async registerDriversForApplication(
     applicationID: string,
-    companyID: string
+    companyID: string,
   ): Promise<Account[]> {
     const application = await this.applicationRepository.findUnique({
       where: { applicationID },
@@ -502,10 +520,9 @@ export class ApplicationPortalService {
 
     const company = await this.companyRepository.findUnique({
       where: { companyID },
-    })
+    });
 
-    if(!company) throw new BadRequestException('Công ty không tồn tại');
-
+    if (!company) throw new BadRequestException('Công ty không tồn tại');
 
     // if (
     //   application.status === ApplicationStatus.REJECTED ||
@@ -514,7 +531,7 @@ export class ApplicationPortalService {
     //   throw new BadRequestException('Trạng thái đơn phải là: APPROVED');
     // }
 
-    if(application.senderFileUrl == null)
+    if (application.senderFileUrl == null)
       throw new BadRequestException('File khôn hợp lệ');
     else if (
       !application.senderFileUrl ||
@@ -553,7 +570,7 @@ export class ApplicationPortalService {
           vehicleType: item[this.HEADER_ARRAY[6].toString()],
           licenseLevel: item[this.HEADER_ARRAY[7].toString()],
           phoneNumber: item[this.HEADER_ARRAY[8].toString()],
-          companyID: companyID
+          companyID: companyID,
         });
       }),
     );
@@ -563,10 +580,10 @@ export class ApplicationPortalService {
 
   //Check Mail trung & rollback
   async approveDriverRequestApplication(
-    approveDriverRequestApplicationRequest: ApproveDriverRequestApplicationRequest
-  ): Promise<ApplicationResponse>{
-
-    const { applicationID, staffNote, companyID } = approveDriverRequestApplicationRequest
+    approveDriverRequestApplicationRequest: ApproveDriverRequestApplicationRequest,
+  ): Promise<ApplicationResponse> {
+    const { applicationID, staffNote, companyID } =
+      approveDriverRequestApplicationRequest;
 
     const application = await this.applicationRepository.findUnique({
       where: { applicationID },
@@ -578,12 +595,12 @@ export class ApplicationPortalService {
 
     const company = await this.companyRepository.findUnique({
       where: { companyID },
-    })
+    });
 
-    if(!company) throw new BadRequestException('Công ty không tồn tại');
+    if (!company) throw new BadRequestException('Công ty không tồn tại');
 
-    if(application.senderFileUrl == null)
-      throw new BadRequestException('File khôn hợp lệ');
+    if (application.senderFileUrl == null)
+      throw new BadRequestException('File không hợp lệ');
     else if (
       !application.senderFileUrl ||
       !(await this.excelHandlerService.validateExcelFile(
@@ -601,31 +618,44 @@ export class ApplicationPortalService {
     );
 
     let current = 1;
-    const accountList: DriverAccountTemplateDto[] = await Promise.all(
-      data.map(async (item) => {
+
+    for (const item of data) {
+      const existing = await this.accountService.existsByEmail(item[this.HEADER_ARRAY[1].toString()]);
+      if (existing) {
+        throw new BadRequestException(
+          'Email đã tồn tại: ' + item[this.HEADER_ARRAY[1].toString()],
+        );
+      }
+    }
+
+    const accountList: DriverAccountTemplateDto[] = [];
+    for (const item of data) {
+      try {
         const rawDate = item[this.HEADER_ARRAY[5].toString()];
         const generatedRandomPassword = '123456';
         const hashPassword = await this.jwtService.hashPassword(
           generatedRandomPassword,
         );
 
-        //Insert to File to Response to User
-        const account: Account | any = await this.accountService.createDriverAccount({
-          email: item[this.HEADER_ARRAY[1].toString()],
-          fullName: item[this.HEADER_ARRAY[2].toString()],
-          identityNumber: item[this.HEADER_ARRAY[3].toString()],
-          password: hashPassword,
-          liscenseNumber: item[this.HEADER_ARRAY[4].toString()].toString(),
-          licenseExpirationDate: new Date(
-            XLSX.SSF.format('yyyy-mm-dd', rawDate),
-          ),
-          vehicleType: item[this.HEADER_ARRAY[6].toString()],
-          licenseLevel: item[this.HEADER_ARRAY[7].toString()],
-          phoneNumber: item[this.HEADER_ARRAY[8].toString()],
-          companyID: companyID
-        });
+        // Kiểm tra email đã tồn tại chưa (nếu createDriverAccount không tự làm điều đó)
 
-        const templateAccount : DriverAccountTemplateDto = {
+        const account: Account | any =
+          await this.accountService.createDriverAccount({
+            email: item[this.HEADER_ARRAY[1].toString()],
+            fullName: item[this.HEADER_ARRAY[2].toString()],
+            identityNumber: item[this.HEADER_ARRAY[3].toString()],
+            password: hashPassword,
+            liscenseNumber: item[this.HEADER_ARRAY[4].toString()].toString(),
+            licenseExpirationDate: new Date(
+              XLSX.SSF.format('yyyy-mm-dd', rawDate),
+            ),
+            vehicleType: item[this.HEADER_ARRAY[6].toString()],
+            licenseLevel: item[this.HEADER_ARRAY[7].toString()],
+            phoneNumber: item[this.HEADER_ARRAY[8].toString()],
+            companyID: companyID,
+          });
+
+        const templateAccount: DriverAccountTemplateDto = {
           no: current,
           email: account.email,
           password: generatedRandomPassword,
@@ -636,29 +666,31 @@ export class ApplicationPortalService {
           licenseLevel: account.Driver.licenseLevel,
           fullName: account.Driver.fullName,
           identityNumber: account.Driver.identityNumber,
-        }
-        current++;
+        };
 
-        return templateAccount;
-      }),
-    );
+        current++;
+        accountList.push(templateAccount);
+      } catch (error) {
+        // Quan trọng: throw để rollback toàn bộ transaction
+        throw new BadRequestException(
+          `Lỗi khi xử lý dòng ${current}: ${error.message}`,
+        );
+      }
+    }
 
     //URL
-    const excelUrl = await this.excelHandlerService.generateExcelAndUploadToS3(accountList);
+    const excelUrl =
+      await this.excelHandlerService.generateExcelAndUploadToS3(accountList);
 
     const result: any = await this.applicationRepository.update({
       where: { applicationID },
       data: {
         status: ApplicationStatus.APPROVED,
         staffNote: staffNote,
-        staffFileUrl: excelUrl
+        staffFileUrl: excelUrl,
       },
     });
 
-
     return ApplicationMapper.toApplicationResponse(result);
-
   }
-
-
 }
