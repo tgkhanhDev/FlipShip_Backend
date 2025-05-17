@@ -6,11 +6,11 @@ import { Public} from 'src/common/utils/metadata';
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @Public()
-  @Get('/driver')
-  findAll() {
-    return this.accountService.getAllDriverAccount();
-  }
+  // @Public()
+  // @Get('/driver')
+  // findAll() {
+  //   return this.accountService.getAllDriverAccount();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

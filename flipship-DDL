@@ -1,5 +1,6 @@
 -- Create extension uuid if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Create Role enum
 CREATE TYPE "Role" AS ENUM ('Admin', 'Staff', 'Company', 'Coordinator', 'Driver', 'Customer');
@@ -117,3 +118,53 @@ CREATE TABLE "Application" (
     FOREIGN KEY ("staffID") REFERENCES "Staff"("staffID") ON DELETE SET NULL
 );
 
+-- Create ENUM type for DeliveryOrder.status
+CREATE TYPE delivery_status AS ENUM ('reject', 'pending', 'in_progress', 'delivered', 'canceled');
+
+-- Create Route table
+CREATE TABLE "Route" (
+    "routeID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "driverID" UUID NOT NULL,
+    "assignedBy" UUID NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("driverID") REFERENCES "Driver"("driverID") ON DELETE SET NULL,
+    FOREIGN KEY ("assignedBy") REFERENCES "Coordinator"("coordinatorID") ON DELETE SET NULL
+);
+
+-- Create Waypoint table
+CREATE TABLE "Waypoint" (
+    "waypointID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "routeID" UUID NOT NULL,
+    "geoLocation" geometry(POINT, 4326) NOT NULL,
+    "location" VARCHAR NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("routeID") REFERENCES "Route"("routeID") ON DELETE CASCADE
+);
+
+-- Create DeliveryOrder table
+CREATE TABLE "DeliveryOrder" (
+    "orderID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "customerID" UUID NOT NULL,
+    "waypointID" UUID NOT NULL,
+    "orderName" TEXT NOT NULL,
+    "orderImage" VARCHAR,
+    "dropDownGeoLocation" geometry(POINT, 4326) NOT NULL,
+    "dropDownLocation" VARCHAR NOT NULL,
+    "deliveryCompanyID" UUID NOT NULL,
+    "driverID" UUID,
+    "status" delivery_status NOT NULL,
+    "pickUpImage" VARCHAR,
+    "dropDownImage" VARCHAR,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("customerID") REFERENCES "Customer"("customerID") ON DELETE SET NULL,
+    FOREIGN KEY ("waypointID") REFERENCES "Waypoint"("waypointID") ON DELETE SET NULL,
+    FOREIGN KEY ("deliveryCompanyID") REFERENCES "Company"("companyID") ON DELETE SET NULL,
+    FOREIGN KEY ("driverID") REFERENCES "Driver"("driverID") ON DELETE SET NULL
+);
+
+-- Create GIST indexes for spatial columns
+CREATE INDEX waypoint_geolocation_gist ON "Waypoint" USING GIST ("geoLocation");
+CREATE INDEX deliveryorder_dropdown_geolocation_gist ON "DeliveryOrder" USING GIST ("dropDownGeoLocation");

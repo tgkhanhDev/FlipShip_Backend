@@ -25,17 +25,18 @@ model Account {
 }
 
 model Company {
-  companyID    String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID    String?       @unique @db.Uuid
-  picFullName  String?       @db.VarChar(255)
-  companyName  String?       @db.VarChar(255)
-  taxCode      String?       @db.VarChar(100)
-  contactEmail String?       @db.VarChar(255)
-  updatedAt    DateTime?     @default(now()) @db.Timestamptz(6)
-  status       String?       @default("inactive") @db.VarChar(50)
-  Account      Account?      @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
-  Coordinator  Coordinator[]
-  Driver       Driver[]
+  companyID     String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID     String?         @unique @db.Uuid
+  picFullName   String?         @db.VarChar(255)
+  companyName   String?         @db.VarChar(255)
+  taxCode       String?         @db.VarChar(100)
+  contactEmail  String?         @db.VarChar(255)
+  updatedAt     DateTime?       @default(now()) @db.Timestamptz(6)
+  status        String?         @default("inactive") @db.VarChar(50)
+  Account       Account?        @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  Coordinator   Coordinator[]
+  DeliveryOrder DeliveryOrder[]
+  Driver        Driver[]
 }
 
 model Coordinator {
@@ -48,16 +49,18 @@ model Coordinator {
   updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
   Account       Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
   Company       Company   @relation(fields: [companyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
+  Route         Route[]
 }
 
 model Customer {
-  customerID  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID   String?   @unique @db.Uuid
-  phoneNumber String?   @db.VarChar(20)
-  fullName    String?   @db.VarChar(255)
-  address     String?   @db.VarChar(500)
-  updatedAt   DateTime? @default(now()) @db.Timestamptz(6)
-  Account     Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  customerID    String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID     String?         @unique @db.Uuid
+  phoneNumber   String?         @db.VarChar(20)
+  fullName      String?         @db.VarChar(255)
+  address       String?         @db.VarChar(500)
+  updatedAt     DateTime?       @default(now()) @db.Timestamptz(6)
+  Account       Account?        @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  DeliveryOrder DeliveryOrder[]
 }
 
 model Admin {
@@ -71,19 +74,21 @@ model Admin {
 }
 
 model Driver {
-  driverID       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  accountID      String?   @unique @db.Uuid
-  companyID      String    @db.Uuid
-  licenseNumber  String    @db.VarChar(50)
-  vehicleType    String?   @db.VarChar(100)
-  licenseExpiry  DateTime? @db.Date
-  phoneNumber    String?   @db.VarChar(15)
-  updatedAt      DateTime? @default(now()) @db.Timestamptz(6)
-  licenseLevel   String?   @db.VarChar
-  fullName       String?   @db.VarChar
-  identityNumber String?   @db.VarChar
-  Account        Account?  @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
-  Company        Company   @relation(fields: [companyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
+  driverID       String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID      String?         @unique @db.Uuid
+  companyID      String          @db.Uuid
+  licenseNumber  String          @db.VarChar(50)
+  vehicleType    String?         @db.VarChar(100)
+  licenseExpiry  DateTime?       @db.Date
+  phoneNumber    String?         @db.VarChar(15)
+  licenseLevel   String?         @db.VarChar(15)
+  fullName       String?         @db.VarChar(100)
+  identityNumber String?         @db.VarChar(100)
+  updatedAt      DateTime?       @default(now()) @db.Timestamptz(6)
+  DeliveryOrder  DeliveryOrder[]
+  Account        Account?        @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
+  Company        Company         @relation(fields: [companyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
+  Route          Route[]
 }
 
 model Staff {
@@ -113,6 +118,61 @@ model Application {
   Staff         Staff?            @relation(fields: [staffID], references: [staffID], onUpdate: NoAction)
 }
 
+model DeliveryOrder {
+  orderID             String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customerID          String                  @db.Uuid
+  waypointID          String                  @db.Uuid
+  orderName           String
+  dropDownGeoLocation Unsupported("geometry")
+  dropDownLocation    String                  @db.VarChar
+  deliveryCompanyID   String                  @db.Uuid
+  driverID            String?                 @db.Uuid
+  status              delivery_status
+  pickUpImage         String?                 @db.VarChar
+  dropDownImage       String?                 @db.VarChar
+  createdAt           DateTime?               @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime?               @default(now()) @db.Timestamptz(6)
+  Customer            Customer                @relation(fields: [customerID], references: [customerID], onDelete: SetNull, onUpdate: NoAction)
+  Company             Company                 @relation(fields: [deliveryCompanyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
+  Driver              Driver?                 @relation(fields: [driverID], references: [driverID], onUpdate: NoAction)
+  Waypoint            Waypoint                @relation(fields: [waypointID], references: [waypointID], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([dropDownGeoLocation], map: "deliveryorder_dropdown_geolocation_gist", type: Gist)
+}
+
+model Route {
+  routeID     String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  driverID    String      @db.Uuid
+  assignedBy  String      @db.Uuid
+  createdAt   DateTime?   @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime?   @default(now()) @db.Timestamptz(6)
+  Coordinator Coordinator @relation(fields: [assignedBy], references: [coordinatorID], onDelete: SetNull, onUpdate: NoAction)
+  Driver      Driver      @relation(fields: [driverID], references: [driverID], onDelete: SetNull, onUpdate: NoAction)
+  Waypoint    Waypoint[]
+}
+
+model Waypoint {
+  waypointID    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  routeID       String                  @db.Uuid
+  geoLocation   Unsupported("geometry")
+  location      String                  @db.VarChar
+  createdAt     DateTime?               @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime?               @default(now()) @db.Timestamptz(6)
+  DeliveryOrder DeliveryOrder[]
+  Route         Route                   @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([geoLocation], map: "waypoint_geolocation_gist", type: Gist)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
 enum Role {
   Admin
   Staff
@@ -132,4 +192,12 @@ enum ApplicationType {
   REQUEST_DRIVERS_ACCOUNT
   REQUEST_BECOME_COMPANY
   OTHER
+}
+
+enum delivery_status {
+  reject
+  pending
+  in_progress
+  delivered
+  canceled
 }

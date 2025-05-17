@@ -56,7 +56,7 @@ INSERT INTO "Coordinator" ("accountID", "companyID", "fullName", "employeeCode",
         '2025-05-01 11:00:00+00'
     );
 
--- Insert sample data into Driver table
+-- Insert sample data into Driver table (Fixed: Added missing comma)
 INSERT INTO "Driver" ("accountID", "companyID", "licenseNumber", "vehicleType", "licenseExpiry", "phoneNumber", "licenseLevel", "fullName", "identityNumber", "updatedAt") VALUES
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'),
@@ -65,9 +65,9 @@ INSERT INTO "Driver" ("accountID", "companyID", "licenseNumber", "vehicleType", 
         'Truck',
         '2025-12-31',
         '+1234567892',
-        "C1",
-        "Bob Smith",
-        "123123"
+        'C1',
+        'Bob Smith',
+        '123123',
         '2025-05-01 13:00:00+00'
     );
 
@@ -116,4 +116,101 @@ INSERT INTO "Application" ("senderID", "staffID", "createdAt", "reviewedAt", "se
         NULL,
         'PENDING',
         'REQUEST_BECOME_COMPANY'
+    );
+
+-- Insert sample data into Route table (Fixed: Corrected driverID column name)
+INSERT INTO "Route" ("driverID", "assignedBy", "createdAt", "updatedAt") VALUES
+    (
+        (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com')),
+        (SELECT "coordinatorID" FROM "Coordinator" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'coordinator1@example.com')),
+        '2025-05-05 08:00:00+00',
+        '2025-05-05 08:00:00+00'
+    );
+
+-- Insert sample data into Waypoint table (Fixed: Removed trailing comma)
+INSERT INTO "Waypoint" ("routeID", "geoLocation", "location") VALUES
+    (
+        (SELECT "routeID" FROM "Route" WHERE "driverID" = (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'))),
+        ST_GeomFromText('POINT(106.6830 10.7620)', 4326),
+        'District 1, Ho Chi Minh City'
+    ),
+    (
+        (SELECT "routeID" FROM "Route" WHERE "driverID" = (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'))),
+        ST_GeomFromText('POINT(106.7699 10.8533)', 4326),
+        'Thu Duc City, Ho Chi Minh City'
+    );
+
+-- Additional sample data for Route table to support multiple routes
+INSERT INTO "Route" ("driverID", "assignedBy", "createdAt", "updatedAt") VALUES
+    (
+        (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com')),
+        (SELECT "coordinatorID" FROM "Coordinator" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'coordinator1@example.com')),
+        '2025-05-06 09:00:00+00',
+        '2025-05-06 09:00:00+00'
+    );
+
+-- Additional sample data for Waypoint table to support multiple waypoints for the new route
+INSERT INTO "Waypoint" ("routeID", "geoLocation", "location", "createdAt", "updatedAt") VALUES
+    (
+        (SELECT "routeID" FROM "Route" WHERE "createdAt" = '2025-05-06 09:00:00+00'),
+        ST_GeomFromText('POINT(106.6600 10.7800)', 4326),
+        'District 3, Ho Chi Minh City',
+        '2025-05-06 09:00:00+00',
+        '2025-05-06 09:00:00+00'
+    ),
+    (
+        (SELECT "routeID" FROM "Route" WHERE "createdAt" = '2025-05-06 09:00:00+00'),
+        ST_GeomFromText('POINT(106.8000 10.9000)', 4326),
+        'Binh Thanh District, Ho Chi Minh City',
+        '2025-05-06 09:00:00+00',
+        '2025-05-06 09:00:00+00'
+    );
+
+-- Insert sample data into DeliveryOrder table
+INSERT INTO "DeliveryOrder" (
+    "customerID", "waypointID", "orderName", "dropDownGeoLocation",
+    "dropDownLocation", "deliveryCompanyID", "driverID", "status",
+    "pickUpImage", "dropDownImage", "createdAt", "updatedAt"
+) VALUES
+    (
+        (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'john.doe@example.com')),
+        (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'District 1, Ho Chi Minh City'),
+        'Electronics Shipment',
+        ST_GeomFromText('POINT(106.6830 10.7620)', 4326),
+        '123 Main St, District 1, Ho Chi Minh City',
+        (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
+        (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com')),
+        'in_progress',
+        'https://example.com/images/pickup1.jpg',
+        NULL,
+        '2025-05-05 10:00:00+00',
+        '2025-05-05 10:00:00+00'
+    ),
+    (
+        (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'jane.smith@example.com')),
+        (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'Thu Duc City, Ho Chi Minh City'),
+        'Furniture Delivery',
+        ST_GeomFromText('POINT(106.7699 10.8533)', 4326),
+        '456 Oak Ave, Thu Duc City, Ho Chi Minh City',
+        (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
+        (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com')),
+        'delivered',
+        'https://example.com/images/pickup2.jpg',
+        'https://example.com/images/dropdown2.jpg',
+        '2025-05-05 11:00:00+00',
+        '2025-05-06 15:00:00+00'
+    ),
+    (
+        (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'mary.jones@example.com')),
+        (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'Binh Thanh District, Ho Chi Minh City'),
+        'Grocery Delivery',
+        ST_GeomFromText('POINT(106.8000 10.9000)', 4326),
+        '789 Pine Rd, Binh Thanh District, Ho Chi Minh City',
+        (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
+        NULL,
+        'pending',
+        NULL,
+        NULL,
+        '2025-05-06 12:00:00+00',
+        '2025-05-06 12:00:00+00'
     );

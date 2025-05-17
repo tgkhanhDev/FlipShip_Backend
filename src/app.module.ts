@@ -10,6 +10,7 @@ import { guardProviders } from './common/providers/guards.provider';
 import { S3Module } from './thirdParty/s3/s3.module';
 import { ApplicationPortalModule } from './application-portal/application-portal.module';
 import { ExcelHandlerModule } from './excel-handler/excel-handler.module';
+import { DeliveryOrderModule } from './delivery-order/delivery-order.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { ExcelHandlerModule } from './excel-handler/excel-handler.module';
     AccountModule,
     S3Module,
     ApplicationPortalModule,
-    ExcelHandlerModule
+    ExcelHandlerModule,
+    DeliveryOrderModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaPostgresService, ...guardProviders],
