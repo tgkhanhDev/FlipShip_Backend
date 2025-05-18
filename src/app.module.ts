@@ -11,6 +11,8 @@ import { S3Module } from './thirdParty/s3/s3.module';
 import { ApplicationPortalModule } from './application-portal/application-portal.module';
 import { ExcelHandlerModule } from './excel-handler/excel-handler.module';
 import { DeliveryOrderModule } from './delivery-order/delivery-order.module';
+import { JwtUtilsService } from './auth/jwtUtils.service';
+import { ImageHandlerModule } from './image-handler/image-handler.module';
 
 @Module({
   imports: [
@@ -23,9 +25,14 @@ import { DeliveryOrderModule } from './delivery-order/delivery-order.module';
     S3Module,
     ApplicationPortalModule,
     ExcelHandlerModule,
-    DeliveryOrderModule
+    DeliveryOrderModule,
+    ImageHandlerModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaPostgresService, ...guardProviders],
+  providers: [
+    AppService,
+    PrismaPostgresService,
+    ...guardProviders,
+  ],
 })
 export class AppModule {}

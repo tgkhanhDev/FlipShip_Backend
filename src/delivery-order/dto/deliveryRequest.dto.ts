@@ -1,19 +1,29 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsDecimal, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
+// Vĩ độ (Latitude): N->S , Kinh độ(Longitude): E->W
 export class CreateDeliveryRequest {
 
   @IsString()
   orderName: string;
 
-  dropDownGeoLocation: any
+  @IsOptional()
+  @IsString()
+  payloadNote?: string
 
+  @IsOptional()
+  @IsString()
+  orderImage?: string
+
+  @IsNumber({}, { message: 'orderWeight must be a number' })
+  orderWeight: number;
+
+  @IsString()
+  dropDownLatitude: string;
+
+  @IsString()
+  dropDownLongtitude: string;
+
+  @IsString()
   dropDownLocation: string;
 
-  deliveryCompanyID: string;
-
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  email: string;
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(6, { message: 'Password must be at least 6 characters long' })
-  password: string
 }

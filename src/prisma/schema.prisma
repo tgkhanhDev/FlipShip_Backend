@@ -123,6 +123,8 @@ model DeliveryOrder {
   customerID          String                  @db.Uuid
   waypointID          String                  @db.Uuid
   orderName           String
+  orderImage          String?                 @db.VarChar
+  orderWeight         Float
   dropDownGeoLocation Unsupported("geometry")
   dropDownLocation    String                  @db.VarChar
   deliveryCompanyID   String                  @db.Uuid
@@ -130,6 +132,7 @@ model DeliveryOrder {
   status              delivery_status
   pickUpImage         String?                 @db.VarChar
   dropDownImage       String?                 @db.VarChar
+  payloadNote         String?                 @db.VarChar
   createdAt           DateTime?               @default(now()) @db.Timestamptz(6)
   updatedAt           DateTime?               @default(now()) @db.Timestamptz(6)
   Customer            Customer                @relation(fields: [customerID], references: [customerID], onDelete: SetNull, onUpdate: NoAction)

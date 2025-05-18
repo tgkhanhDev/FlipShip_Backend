@@ -143,20 +143,30 @@ CREATE TABLE "Waypoint" (
     FOREIGN KEY ("routeID") REFERENCES "Route"("routeID") ON DELETE CASCADE
 );
 
--- Create DeliveryOrder table
+-- Create DeliveryOrder table. Chon xong phai co 1 price uoc chung
 CREATE TABLE "DeliveryOrder" (
     "orderID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "customerID" UUID NOT NULL,
-    "waypointID" UUID NOT NULL,
+    "waypointID" UUID,
+
+    -- Thong tin don hang
     "orderName" TEXT NOT NULL,
     "orderImage" VARCHAR,
+    "orderWeight" FLOAT NOT NULL,
+
+    -- Thong tin destination
     "dropDownGeoLocation" geometry(POINT, 4326) NOT NULL,
     "dropDownLocation" VARCHAR NOT NULL,
-    "deliveryCompanyID" UUID NOT NULL,
+
+    "deliveryCompanyID" UUID,
     "driverID" UUID,
     "status" delivery_status NOT NULL,
+
+    -- Driver note
     "pickUpImage" VARCHAR,
     "dropDownImage" VARCHAR,
+    "payloadNote" VARCHAR,
+
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("customerID") REFERENCES "Customer"("customerID") ON DELETE SET NULL,

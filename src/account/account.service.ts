@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { Account, Company } from '@prisma/client';
+import { Account, Company, Role, Customer } from '@prisma/client';
 import {
   CreateAccountRequest,
   CreateCustomerAccountRequest,
@@ -15,12 +15,15 @@ import { UuidFactory } from '@nestjs/core/inspector/uuid-factory';
 export class AccountService {
   private readonly accountRepository;
   private readonly companyRepository;
+  private readonly customerRepository;
+
 
   constructor(
     private readonly repository: PrismaPostgresService,
   ) {
     this.accountRepository = repository.account;
     this.companyRepository = repository.company;
+    this.customerRepository = repository.customer;
   }
 
   findAll() {
@@ -138,6 +141,15 @@ export class AccountService {
       return true;
     }
     return false;
+  }
+
+  async findCustomerByAccountID(accountID: string): Promise<Customer | null> {
+    return await this.customerRepository.findUnique({
+      where: {
+        accountID
+      },
+    })
+
   }
 
 }

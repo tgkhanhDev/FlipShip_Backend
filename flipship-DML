@@ -168,20 +168,23 @@ INSERT INTO "Waypoint" ("routeID", "geoLocation", "location", "createdAt", "upda
 
 -- Insert sample data into DeliveryOrder table
 INSERT INTO "DeliveryOrder" (
-    "customerID", "waypointID", "orderName", "dropDownGeoLocation",
+    "customerID", "waypointID", "orderName", "orderImage", "orderWeight" , "dropDownGeoLocation",
     "dropDownLocation", "deliveryCompanyID", "driverID", "status",
-    "pickUpImage", "dropDownImage", "createdAt", "updatedAt"
+    "pickUpImage", "dropDownImage", "payloadNote", "createdAt", "updatedAt"
 ) VALUES
     (
         (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'john.doe@example.com')),
         (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'District 1, Ho Chi Minh City'),
         'Electronics Shipment',
+        'image.png',
+        '3.5',
         ST_GeomFromText('POINT(106.6830 10.7620)', 4326),
         '123 Main St, District 1, Ho Chi Minh City',
         (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
         (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com')),
         'in_progress',
         'https://example.com/images/pickup1.jpg',
+        NULL,
         NULL,
         '2025-05-05 10:00:00+00',
         '2025-05-05 10:00:00+00'
@@ -190,6 +193,8 @@ INSERT INTO "DeliveryOrder" (
         (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'jane.smith@example.com')),
         (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'Thu Duc City, Ho Chi Minh City'),
         'Furniture Delivery',
+        'image.png',
+        '3.5',
         ST_GeomFromText('POINT(106.7699 10.8533)', 4326),
         '456 Oak Ave, Thu Duc City, Ho Chi Minh City',
         (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
@@ -197,6 +202,7 @@ INSERT INTO "DeliveryOrder" (
         'delivered',
         'https://example.com/images/pickup2.jpg',
         'https://example.com/images/dropdown2.jpg',
+        'Product got damaged',
         '2025-05-05 11:00:00+00',
         '2025-05-06 15:00:00+00'
     ),
@@ -204,11 +210,14 @@ INSERT INTO "DeliveryOrder" (
         (SELECT "customerID" FROM "Customer" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'mary.jones@example.com')),
         (SELECT "waypointID" FROM "Waypoint" WHERE "location" = 'Binh Thanh District, Ho Chi Minh City'),
         'Grocery Delivery',
+        'image.png',
+        '3.5',
         ST_GeomFromText('POINT(106.8000 10.9000)', 4326),
         '789 Pine Rd, Binh Thanh District, Ho Chi Minh City',
         (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
         NULL,
         'pending',
+        NULL,
         NULL,
         NULL,
         '2025-05-06 12:00:00+00',
