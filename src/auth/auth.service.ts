@@ -33,7 +33,7 @@ export class AuthService {
     return accounts.map((account) => AccountMapper.toAccountResponse(account));
   }
 
-  async login(authRequest: AuthRequest): Promise<{access_token: string}> {
+  async login(authRequest: AuthRequest): Promise<{access_token: string, role:string}> {
     //Nên gọi từ module
     try {
       const user = await this.accountRepository.findUniqueOrThrow({
@@ -47,6 +47,7 @@ export class AuthService {
 
       return {
         access_token: await this.jwtService.createToken(user),
+        role: user.role,
       };
     } catch (error) {
       throw new AppException(ErrorCode.AUTH_INVALID)
