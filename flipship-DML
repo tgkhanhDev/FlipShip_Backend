@@ -81,16 +81,6 @@ INSERT INTO "Staff" ("accountID", "fullName", "department", "employeeCode", "cre
         '2025-05-01 14:00:00+00'
     );
 
--- Insert sample data into Admin table
-INSERT INTO "Admin" ("accountID", "fullName", "accessLevel", "lastLogin", "createdAt") VALUES
-    (
-        (SELECT "accountID" FROM "Account" WHERE email = 'admin1@example.com'),
-        'Bob Wilson',
-        'SuperAdmin',
-        '2025-05-01 10:00:00+00',
-        '2025-05-01 15:00:00+00'
-    );
-
 -- Insert sample data into Application table
 INSERT INTO "Application" ("senderID", "staffID", "createdAt", "reviewedAt", "senderNote", "senderFileUrl", "staffNote", "staffFileUrl", "status", "type") VALUES
     (

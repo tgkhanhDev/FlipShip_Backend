@@ -83,17 +83,6 @@ CREATE TABLE "Staff" (
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
 );
 
--- Table Admin
-CREATE TABLE "Admin" (
-    "adminID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "accountID" UUID UNIQUE,
-    "fullName" VARCHAR(255),
-    "accessLevel" VARCHAR(50) NOT NULL, -- e.g., SuperAdmin, Moderator
-    "lastLogin" TIMESTAMPTZ,
-    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
-);
-
 -- Create Status enum for Application
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 CREATE TYPE "ApplicationType" AS ENUM ('REQUEST_DRIVERS_ACCOUNT', 'REQUEST_BECOME_COMPANY', 'OTHER');
@@ -120,6 +109,53 @@ CREATE TABLE "Application" (
 
 -- Create ENUM type for DeliveryOrder.status
 CREATE TYPE delivery_status AS ENUM ('reject', 'pending', 'in_progress', 'delivered', 'canceled');
+
+-- Create Message table
+CREATE TABLE "Message" (
+    "messageID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "senderID" UUID NOT NULL,
+    "receiverID" UUID NOT NULL,
+    "content" VARCHAR(1000) NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("senderID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("receiverID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Create Status enum for Report
+CREATE TYPE "ReportStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE "ReportType" AS ENUM ('LATE_DELIVERY', 'DAMAGED_GOODS', 'MISSING_ITEMS', 'WRONG_ITEM', 'POOR_PACKAGING', 'UNPROFESSIONAL_STAFF', 'FRAUDULENT_ACTIVITY', 'DELIVERY_FAILURE', 'RETURN_ISSUE', 'OTHER');
+
+-- Create Rating table
+CREATE TABLE "Report" (
+    "reportID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "reporterID" UUID NOT NULL,
+    "reportedID" UUID NOT NULL,
+    "updaterID" UUID NOT NULL,
+    "status" "ReportStatus" NOT NULL DEFAULT 'PENDING',
+    "type" "ReportType" NOT NULL,
+    "content" VARCHAR(1000) NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("reporterID") REFERENCES "Customer"("customerID") ON DELETE SET NULL,
+    FOREIGN KEY ("reportedID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("updaterID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Create Rating enum for Application
+CREATE TYPE "RatingType" AS ENUM ('DRIVER', 'COMPANY');
+
+-- Create Rating table
+CREATE TABLE "Rating" (
+    "ratingID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "raterID" UUID NOT NULL,
+    "rateeID" UUID NOT NULL,
+    "type" "RatingType" NOT NULL,
+    "stars" INTEGER NOT NULL,
+    "content" VARCHAR(1000) NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("raterID") REFERENCES "Customer"("customerID") ON DELETE SET NULL,
+    FOREIGN KEY ("rateeID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
 
 -- Create Route table
 CREATE TABLE "Route" (
