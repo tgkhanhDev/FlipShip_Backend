@@ -8,24 +8,29 @@ datasource db {
 }
 
 model Account {
-  accountID                           String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                               String        @unique @db.VarChar(255)
-  password                            String
-  status                              String?       @default("active") @db.VarChar(50)
-  role                                Role
-  createdAt                           DateTime?     @default(now()) @db.Timestamptz(6)
-  updatedAt                           DateTime?     @default(now()) @db.Timestamptz(6)
-  Application                         Application[]
-  Company                             Company?
-  Coordinator                         Coordinator?
-  Customer                            Customer?
-  Driver                              Driver?
-  Message_Message_receiverIDToAccount Message[]     @relation("Message_receiverIDToAccount")
-  Message_Message_senderIDToAccount   Message[]     @relation("Message_senderIDToAccount")
-  Rating                              Rating[]
-  Report_Report_reportedIDToAccount   Report[]      @relation("Report_reportedIDToAccount")
-  Report_Report_updaterIDToAccount    Report[]      @relation("Report_updaterIDToAccount")
-  Staff                               Staff?
+  accountID                                       String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                                           String         @unique @db.VarChar(255)
+  fullName                                        String?        @db.VarChar(255)
+  password                                        String
+  status                                          String?        @default("active") @db.VarChar(50)
+  role                                            Role
+  createdAt                                       DateTime?      @default(now()) @db.Timestamptz(6)
+  updatedAt                                       DateTime?      @default(now()) @db.Timestamptz(6)
+  Application                                     Application[]
+  Company                                         Company?
+  Conversation_Conversation_accountOneIDToAccount Conversation[] @relation("Conversation_accountOneIDToAccount")
+  Conversation_Conversation_accountTwoIDToAccount Conversation[] @relation("Conversation_accountTwoIDToAccount")
+  Coordinator                                     Coordinator?
+  Customer                                        Customer?
+  DeviceToken                                     DeviceToken[]
+  Driver                                          Driver?
+  Message_Message_receiverIDToAccount             Message[]      @relation("Message_receiverIDToAccount")
+  Message_Message_senderIDToAccount               Message[]      @relation("Message_senderIDToAccount")
+  Notification                                    Notification[]
+  Rating                                          Rating[]
+  Report_Report_reportedIDToAccount               Report[]       @relation("Report_reportedIDToAccount")
+  Report_Report_updaterIDToAccount                Report[]       @relation("Report_updaterIDToAccount")
+  Staff                                           Staff?
 }
 
 model Company {
@@ -47,7 +52,6 @@ model Coordinator {
   coordinatorID String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   accountID     String?   @unique @db.Uuid
   companyID     String    @db.Uuid
-  fullName      String?   @db.VarChar(255)
   employeeCode  String?   @db.VarChar(15)
   phoneNumber   String?   @db.VarChar(15)
   updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
@@ -60,7 +64,6 @@ model Customer {
   customerID    String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   accountID     String?         @unique @db.Uuid
   phoneNumber   String?         @db.VarChar(20)
-  fullName      String?         @db.VarChar(255)
   address       String?         @db.VarChar(500)
   updatedAt     DateTime?       @default(now()) @db.Timestamptz(6)
   Account       Account?        @relation(fields: [accountID], references: [accountID], onUpdate: NoAction)
@@ -78,7 +81,6 @@ model Driver {
   licenseExpiry  DateTime?       @db.Date
   phoneNumber    String?         @db.VarChar(15)
   licenseLevel   String?         @db.VarChar(15)
-  fullName       String?         @db.VarChar(100)
   identityNumber String?         @db.VarChar(100)
   updatedAt      DateTime?       @default(now()) @db.Timestamptz(6)
   DeliveryOrder  DeliveryOrder[]
@@ -90,7 +92,6 @@ model Driver {
 model Staff {
   staffID      String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   accountID    String?       @unique @db.Uuid
-  fullName     String?       @db.VarChar(255)
   department   String?       @db.VarChar(100)
   employeeCode String        @db.VarChar(50)
   createdAt    DateTime?     @default(now()) @db.Timestamptz(6)
@@ -173,13 +174,15 @@ model spatial_ref_sys {
 }
 
 model Message {
-  messageID                           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  senderID                            String    @db.Uuid
-  receiverID                          String    @db.Uuid
-  content                             String    @db.VarChar(1000)
-  createdAt                           DateTime? @default(now()) @db.Timestamptz(6)
-  Account_Message_receiverIDToAccount Account   @relation("Message_receiverIDToAccount", fields: [receiverID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
-  Account_Message_senderIDToAccount   Account   @relation("Message_senderIDToAccount", fields: [senderID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+  messageID                           String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  conversationID                      String       @db.Uuid
+  senderID                            String       @db.Uuid
+  receiverID                          String       @db.Uuid
+  content                             String       @db.VarChar(1000)
+  createdAt                           DateTime?    @default(now()) @db.Timestamptz(6)
+  Conversation                        Conversation @relation(fields: [conversationID], references: [conversationID], onDelete: SetNull, onUpdate: NoAction)
+  Account_Message_receiverIDToAccount Account      @relation("Message_receiverIDToAccount", fields: [receiverID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+  Account_Message_senderIDToAccount   Account      @relation("Message_senderIDToAccount", fields: [senderID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model Rating {
@@ -207,6 +210,35 @@ model Report {
   Account_Report_reportedIDToAccount Account      @relation("Report_reportedIDToAccount", fields: [reportedID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
   Customer                           Customer     @relation(fields: [reporterID], references: [customerID], onDelete: SetNull, onUpdate: NoAction)
   Account_Report_updaterIDToAccount  Account      @relation("Report_updaterIDToAccount", fields: [updaterID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+}
+
+model Conversation {
+  conversationID                             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountOneID                               String    @db.Uuid
+  accountTwoID                               String    @db.Uuid
+  isActive                                   is_active @default(Active)
+  Account_Conversation_accountOneIDToAccount Account   @relation("Conversation_accountOneIDToAccount", fields: [accountOneID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+  Account_Conversation_accountTwoIDToAccount Account   @relation("Conversation_accountTwoIDToAccount", fields: [accountTwoID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+  Message                                    Message[]
+}
+
+model DeviceToken {
+  deviceTokenID String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID     String  @db.Uuid
+  deviceIDs     String
+  Account       Account @relation(fields: [accountID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
+}
+
+model Notification {
+  notificationID String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountID      String        @db.Uuid
+  deviceID       String?       @db.VarChar(1000)
+  notiType       Notify_Type?
+  notiStatus     Notify_Status @default(Unread)
+  title          String        @db.VarChar(500)
+  content        String        @db.VarChar(1000)
+  createdAt      DateTime?     @default(now()) @db.Timestamptz(6)
+  Account        Account       @relation(fields: [accountID], references: [accountID], onDelete: SetNull, onUpdate: NoAction)
 }
 
 enum Role {
@@ -261,4 +293,23 @@ enum ReportType {
   DELIVERY_FAILURE
   RETURN_ISSUE
   OTHER
+}
+
+enum Notify_Status {
+  Read
+  Unread
+}
+
+enum Notify_Type {
+  Application
+  Message
+  Report
+  Order
+  Assign
+  Other
+}
+
+enum is_active {
+  Active
+  Inactive
 }

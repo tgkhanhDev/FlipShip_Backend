@@ -1,33 +1,30 @@
 -- Insert sample data into Account table
-INSERT INTO "Account" (email, password, status, role, "createdAt", "updatedAt") VALUES
-    ('john.doe@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 08:00:00+00', '2025-05-01 08:00:00+00'),
-    ('jane.smith@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 09:00:00+00', '2025-05-01 09:00:00+00'),
-    ('acme.corp@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Company', '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00'),
-    ('coordinator1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Coordinator', '2025-05-01 11:00:00+00', '2025-05-01 11:00:00+00'),
-    ('mary.jones@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'inactive', 'Customer', '2025-05-01 12:00:00+00', '2025-05-01 12:00:00+00'),
-    ('driver1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Driver', '2025-05-01 13:00:00+00', '2025-05-01 13:00:00+00'),
-    ('staff1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Staff', '2025-05-01 14:00:00+00', '2025-05-01 14:00:00+00'),
-    ('admin1@example.com', '$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Admin', '2025-05-01 15:00:00+00', '2025-05-01 15:00:00+00');
+INSERT INTO "Account" (email, "fullName", password, status, role, "createdAt", "updatedAt") VALUES
+    ('john.doe@example.com', 'John Doe','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 08:00:00+00', '2025-05-01 08:00:00+00'),
+    ('jane.smith@example.com', 'Jane Smith','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 09:00:00+00', '2025-05-01 09:00:00+00'),
+    ('acme.corp@example.com', 'Acme Corp','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Company', '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00'),
+    ('coordinator1@example.com', 'Chris Lee','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Coordinator', '2025-05-01 11:00:00+00', '2025-05-01 11:00:00+00'),
+    ('mary.jones@example.com', 'Mary Jones','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'inactive', 'Customer', '2025-05-01 12:00:00+00', '2025-05-01 12:00:00+00'),
+    ('driver1@example.com', 'Bob Smith','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Driver', '2025-05-01 13:00:00+00', '2025-05-01 13:00:00+00'),
+    ('staff1@example.com', 'Alice Brown','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Staff', '2025-05-01 14:00:00+00', '2025-05-01 14:00:00+00'),
+    ('admin1@example.com', 'Adam Abraham','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Admin', '2025-05-01 15:00:00+00', '2025-05-01 15:00:00+00');
 
 -- Insert sample data into Customer table
-INSERT INTO "Customer" ("accountID", "fullName", "phoneNumber", "address", "updatedAt") VALUES
+INSERT INTO "Customer" ("accountID", "phoneNumber", "address", "updatedAt") VALUES
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'john.doe@example.com'),
-        'John Doe',
         '+1234567890',
         '123 Main St, New York, NY 10001',
         '2025-05-01 08:00:00+00'
     ),
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'jane.smith@example.com'),
-        'Jane Smith',
         '+1987654321',
         '456 Oak Ave, Los Angeles, CA 90001',
         '2025-05-01 09:00:00+00'
     ),
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'mary.jones@example.com'),
-        'Mary Jones',
         '+1555555555',
         '789 Pine Rd, Chicago, IL 60601',
         '2025-05-01 12:00:00+00'
@@ -46,18 +43,17 @@ INSERT INTO "Company" ("accountID", "companyName", "taxCode", "contactEmail", "p
     );
 
 -- Insert sample data into Coordinator table
-INSERT INTO "Coordinator" ("accountID", "companyID", "fullName", "employeeCode", "phoneNumber", "updatedAt") VALUES
+INSERT INTO "Coordinator" ("accountID", "companyID", "employeeCode", "phoneNumber", "updatedAt") VALUES
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'coordinator1@example.com'),
         (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
-        'Chris Lee',
         'EMP001',
         '+1234567891',
         '2025-05-01 11:00:00+00'
     );
 
 -- Insert sample data into Driver table (Fixed: Added missing comma)
-INSERT INTO "Driver" ("accountID", "companyID", "licenseNumber", "vehicleType", "licenseExpiry", "phoneNumber", "licenseLevel", "fullName", "identityNumber", "updatedAt") VALUES
+INSERT INTO "Driver" ("accountID", "companyID", "licenseNumber", "vehicleType", "licenseExpiry", "phoneNumber", "licenseLevel", "identityNumber", "updatedAt") VALUES
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'),
         (SELECT "companyID" FROM "Company" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'acme.corp@example.com')),
@@ -66,16 +62,14 @@ INSERT INTO "Driver" ("accountID", "companyID", "licenseNumber", "vehicleType", 
         '2025-12-31',
         '+1234567892',
         'C1',
-        'Bob Smith',
         '123123',
         '2025-05-01 13:00:00+00'
     );
 
 -- Insert sample data into Staff table
-INSERT INTO "Staff" ("accountID", "fullName", "department", "employeeCode", "createdAt") VALUES
+INSERT INTO "Staff" ("accountID", "department", "employeeCode", "createdAt") VALUES
     (
         (SELECT "accountID" FROM "Account" WHERE email = 'staff1@example.com'),
-        'Alice Brown',
         'HR',
         'STAFF001',
         '2025-05-01 14:00:00+00'

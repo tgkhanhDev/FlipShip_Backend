@@ -13,6 +13,8 @@ import { ExcelHandlerModule } from './excel-handler/excel-handler.module';
 import { DeliveryOrderModule } from './delivery-order/delivery-order.module';
 import { JwtUtilsService } from './auth/jwtUtils.service';
 import { ImageHandlerModule } from './image-handler/image-handler.module';
+import { ChatModule } from './chat-handler/chat.module';
+import { NotificationHandlerModule } from './notification-handler/notification-handler.module';
 
 @Module({
   imports: [
@@ -27,12 +29,10 @@ import { ImageHandlerModule } from './image-handler/image-handler.module';
     ExcelHandlerModule,
     DeliveryOrderModule,
     ImageHandlerModule,
+    ChatModule,
+    NotificationHandlerModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    PrismaPostgresService,
-    ...guardProviders,
-  ],
+  providers: [AppService, PrismaPostgresService, ...guardProviders],
 })
 export class AppModule {}

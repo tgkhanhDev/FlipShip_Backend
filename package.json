@@ -20,7 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma": "prisma --schema=src/prisma/schema.prisma",
     "db:refresh": "npx prisma db pull --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma",
-    "db:view": "npx prisma studio --schema=src/prisma/schema.prisma"
+    "db:view": "npx prisma studio --schema=src/prisma/schema.prisma",
+    "tunnel": "ngrok http 8080",
+    "start:dev:tunnel": "concurrently --names \"NEST,NGROK\" --prefix \"[{name}]\" --prefix-colors \"blue,green\" --raw \"npm run start:dev\" \"npm run tunnel\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.802.0",
@@ -30,7 +32,9 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.1.0",
+    "@nestjs/platform-socket.io": "^11.1.1",
     "@nestjs/swagger": "^11.1.6",
+    "@nestjs/websockets": "^11.1.1",
     "@prisma/client": "^6.7.0",
     "@types/bcrypt": "^5.0.2",
     "@types/multer": "^1.4.12",
@@ -38,6 +42,10 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "concurrently": "^9.1.2",
+    "dayjs": "^1.11.13",
+    "dayjs-plugin-utc": "^0.1.2",
+    "firebase-admin": "^13.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "xlsx": "^0.18.5"

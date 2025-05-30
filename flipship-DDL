@@ -9,6 +9,8 @@ CREATE TYPE "Role" AS ENUM ('Admin', 'Staff', 'Company', 'Coordinator', 'Driver'
 CREATE TABLE "Account" (
     "accountID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
+    "fullName" VARCHAR(255),
+    "avatar" TEXT,
     password TEXT NOT NULL,
     status VARCHAR(50) DEFAULT 'active',
     role "Role" NOT NULL, -- Added Role enum
@@ -16,12 +18,19 @@ CREATE TABLE "Account" (
     "updatedAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create DeviceToken table
+CREATE TABLE "DeviceToken" (
+    "deviceTokenID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID NOT NULL,
+    "deviceIDs" TEXT NOT NULL,
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
 -- Table Customer
 CREATE TABLE "Customer" (
     "customerID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
     "phoneNumber" VARCHAR(20),
-    "fullName" VARCHAR(255),
     "address" VARCHAR(500),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
@@ -45,7 +54,6 @@ CREATE TABLE "Coordinator" (
     "coordinatorID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
     "companyID" UUID NOT NULL,
-    "fullName" VARCHAR(255),
     "employeeCode" VARCHAR(15),
     "phoneNumber" VARCHAR(15),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
@@ -64,7 +72,6 @@ CREATE TABLE "Driver" (
     "licenseExpiry" DATE,
     "phoneNumber" VARCHAR(15),
     "licenseLevel" VARCHAR(15),
-    "fullName" VARCHAR(100),
     "identityNumber" VARCHAR(100),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
@@ -76,7 +83,6 @@ CREATE TABLE "Driver" (
 CREATE TABLE "Staff" (
     "staffID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "accountID" UUID UNIQUE,
-    "fullName" VARCHAR(255),
     "department" VARCHAR(100), -- e.g., HR, IT, Operations
     "employeeCode" VARCHAR(50) NOT NULL,
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
@@ -107,18 +113,45 @@ CREATE TABLE "Application" (
     FOREIGN KEY ("staffID") REFERENCES "Staff"("staffID") ON DELETE SET NULL
 );
 
--- Create ENUM type for DeliveryOrder.status
-CREATE TYPE delivery_status AS ENUM ('reject', 'pending', 'in_progress', 'delivered', 'canceled');
+-- Create ENUM type for Conversation.isActive
+CREATE TYPE "is_active" AS ENUM ('Active', 'Inactive');
+
+-- Create Conversation table
+CREATE TABLE "Conversation" (
+    "conversationID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountOneID" UUID NOT NULL,
+    "accountTwoID" UUID NOT NULL,
+    "isActive" "is_active" NOT NULL DEFAULT 'Active',
+    FOREIGN KEY ("accountOneID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
+    FOREIGN KEY ("accountTwoID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
 
 -- Create Message table
 CREATE TABLE "Message" (
     "messageID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "conversationID" UUID NOT NULL,
     "senderID" UUID NOT NULL,
     "receiverID" UUID NOT NULL,
     "content" VARCHAR(1000) NOT NULL,
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("conversationID") REFERENCES "Conversation"("conversationID") ON DELETE SET NULL,
     FOREIGN KEY ("senderID") REFERENCES "Account"("accountID") ON DELETE SET NULL,
     FOREIGN KEY ("receiverID") REFERENCES "Account"("accountID") ON DELETE SET NULL
+);
+
+-- Create ENUM type for Notification.type
+CREATE TYPE "Notify_Type" AS ENUM ('Application', 'Message', 'Report', 'Order', 'Assign', 'Other');
+CREATE TYPE "Notify_Status" AS ENUM ('Read', 'Unread');
+
+CREATE TABLE "Notification" (
+    "notificationID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "accountID" UUID NOT NULL,
+    "notiType" "Notify_Type",
+    "notiStatus" "Notify_Status" NOT NULL DEFAULT 'Unread',
+    "title" VARCHAR(500) NOT NULL,
+    "content" VARCHAR(1000) NOT NULL,
+    "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY ("accountID") REFERENCES "Account"("accountID") ON DELETE SET NULL
 );
 
 -- Create Status enum for Report
@@ -178,6 +211,9 @@ CREATE TABLE "Waypoint" (
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("routeID") REFERENCES "Route"("routeID") ON DELETE CASCADE
 );
+
+-- Create ENUM type for DeliveryOrder.status
+CREATE TYPE delivery_status AS ENUM ('reject', 'pending', 'in_progress', 'delivered', 'canceled');
 
 -- Create DeliveryOrder table. Chon xong phai co 1 price uoc chung
 CREATE TABLE "DeliveryOrder" (

@@ -3,12 +3,14 @@ import { AppModule } from './app.module';
 import { AppExceptionFilter } from './exception/appFilter.pipe';
 import { ValidationPipe } from './validators/validation.pipe';
 
+//Xoá ngork khi deploy, không cần thiết khi deploy
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   //CORS
   app.enableCors({
-    origin: ['http://192.168.1.16:8081', 'http://localhost:3000'],
+    origin: ['*', "http://localhost:3000"],
   });
 
   //pipe
