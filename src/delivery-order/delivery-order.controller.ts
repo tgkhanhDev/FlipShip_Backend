@@ -1,20 +1,20 @@
 import {
   BadRequestException,
   Body,
-  Controller,
+  Controller, Get,
   HttpStatus,
-  Post,
+  Post, Query,
   Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { DeliveryOrderService } from './delivery-order.service';
-import { CreateDeliveryRequest } from './dto/deliveryRequest.dto';
+import { CreateDeliveryRequest, ViewDeliveryOrderQuery } from './dto/deliveryRequest.dto';
 import { DeliveryOrder, Role } from '@prisma/client';
 import { RoleMatch } from '../common/utils/metadata';
 import { Request } from 'express';
 import { JwtUtilsService } from '../auth/jwtUtils.service';
-import { ApiResponse } from '../common/utils/response.dto';
+import { ApiResponse, PaginationParams, PaginationResponse } from '../common/utils/response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageHandlerService } from '../image-handler/image-handler.service';
 
@@ -56,6 +56,33 @@ export class DeliveryOrderController {
       'Tạo đơn vận chuyển thành công',
     );
 
+  }
+
+  @Get('/created')
+  @RoleMatch(Role.Customer)
+  async viewAllDeliveryOrder(
+    @Query() query: ViewDeliveryOrderQuery,
+    @Req() req: Request
+  ): Promise<PaginationResponse<DeliveryOrder[]>> {
+    const { status, page, limit } = query;
+    const payload = await this.jwtService.extractAndDecodeToken(req);
+    const accountID = payload.sub;
+
+    const pagiParam: PaginationParams = {
+      page: parseInt(page + '') || 1,
+      limit: parseInt(limit + '') || 10,
+    };
+
+    const response = await this.deliveryOrderService.viewAllDeliveryOrder(accountID, pagiParam, status);
+
+    return PaginationResponse.build<DeliveryOrder[]>(
+      HttpStatus.OK,
+      response.data,
+      'Xem danh sách đơn vận chuyển',
+      page,
+      response.total,
+      limit
+    );
   }
 
 

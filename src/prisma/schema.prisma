@@ -121,13 +121,13 @@ model Application {
 model DeliveryOrder {
   orderID             String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   customerID          String                  @db.Uuid
-  waypointID          String                  @db.Uuid
+  waypointID          String?                 @db.Uuid
   orderName           String
   orderImage          String?                 @db.VarChar
   orderWeight         Float
   dropDownGeoLocation Unsupported("geometry")
   dropDownLocation    String                  @db.VarChar
-  deliveryCompanyID   String                  @db.Uuid
+  deliveryCompanyID   String?                 @db.Uuid
   driverID            String?                 @db.Uuid
   status              delivery_status
   pickUpImage         String?                 @db.VarChar
@@ -136,9 +136,9 @@ model DeliveryOrder {
   createdAt           DateTime?               @default(now()) @db.Timestamptz(6)
   updatedAt           DateTime?               @default(now()) @db.Timestamptz(6)
   Customer            Customer                @relation(fields: [customerID], references: [customerID], onDelete: SetNull, onUpdate: NoAction)
-  Company             Company                 @relation(fields: [deliveryCompanyID], references: [companyID], onDelete: SetNull, onUpdate: NoAction)
+  Company             Company?                @relation(fields: [deliveryCompanyID], references: [companyID], onUpdate: NoAction)
   Driver              Driver?                 @relation(fields: [driverID], references: [driverID], onUpdate: NoAction)
-  Waypoint            Waypoint                @relation(fields: [waypointID], references: [waypointID], onDelete: SetNull, onUpdate: NoAction)
+  Waypoint            Waypoint?               @relation(fields: [waypointID], references: [waypointID], onUpdate: NoAction)
 
   @@index([dropDownGeoLocation], map: "deliveryorder_dropdown_geolocation_gist", type: Gist)
 }
@@ -161,6 +161,7 @@ model Waypoint {
   location      String                  @db.VarChar
   createdAt     DateTime?               @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime?               @default(now()) @db.Timestamptz(6)
+  index         Int?
   DeliveryOrder DeliveryOrder[]
   Route         Route                   @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
 

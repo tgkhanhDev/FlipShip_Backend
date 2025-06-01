@@ -13,6 +13,8 @@ import { ExcelHandlerModule } from './excel-handler/excel-handler.module';
 import { DeliveryOrderModule } from './delivery-order/delivery-order.module';
 import { JwtUtilsService } from './auth/jwtUtils.service';
 import { ImageHandlerModule } from './image-handler/image-handler.module';
+import { RoutePlanningModule } from './route-planning/route-planning.module';
+import { WaypointModule } from './waypoint/waypoint.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ImageHandlerModule } from './image-handler/image-handler.module';
     ExcelHandlerModule,
     DeliveryOrderModule,
     ImageHandlerModule,
+    RoutePlanningModule,
+    WaypointModule,
   ],
   controllers: [AppController],
   providers: [

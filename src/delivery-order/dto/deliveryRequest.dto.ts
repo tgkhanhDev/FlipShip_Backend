@@ -1,4 +1,15 @@
-import { IsDecimal, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import {
+  IsDecimal,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
+import { delivery_status } from '@prisma/client';
 
 // Vĩ độ (Latitude): N->S , Kinh độ(Longitude): E->W
 export class CreateDeliveryRequest {
@@ -26,4 +37,19 @@ export class CreateDeliveryRequest {
   @IsString()
   dropDownLocation: string;
 
+}
+
+//Queries
+export class ViewDeliveryOrderQuery {
+  @IsOptional()
+  @IsEnum(delivery_status, {
+    message: 'Delivery Status must be one of reject, pending, in_progress, delivered, canceled',
+  })
+  status: delivery_status;
+
+  @IsOptional()
+  page: number = 1; // Default to page 1
+
+  @IsOptional()
+  limit: number = 10; // Default to 10 items per page
 }

@@ -149,7 +149,13 @@ export class AccountService {
         accountID
       },
     })
-
   }
 
+  async findCompanyByAccountID(accountID: string): Promise<Company | null> {
+    return await this.companyRepository.findUnique({
+      where: {
+        accountID
+      },
+    })
+  }
 }
