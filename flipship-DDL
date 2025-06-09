@@ -124,7 +124,7 @@ CREATE TYPE delivery_status AS ENUM ('reject', 'pending', 'in_progress', 'delive
 -- Create Route table
 CREATE TABLE "Route" (
     "routeID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "driverID" UUID NOT NULL,
+    "driverID" UUID,
     "assignedBy" UUID NOT NULL,
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
@@ -135,7 +135,7 @@ CREATE TABLE "Route" (
 -- Create Waypoint table
 CREATE TABLE "Waypoint" (
     "waypointID" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "routeID" UUID NOT NULL,
+    "routeID" UUID,
     "geoLocation" geometry(POINT, 4326) NOT NULL,
     "location" VARCHAR NOT NULL,
     "index" int NOT NULL,

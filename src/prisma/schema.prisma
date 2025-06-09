@@ -145,12 +145,12 @@ model DeliveryOrder {
 
 model Route {
   routeID     String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  driverID    String      @db.Uuid
+  driverID    String?     @db.Uuid
   assignedBy  String      @db.Uuid
   createdAt   DateTime?   @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime?   @default(now()) @db.Timestamptz(6)
   Coordinator Coordinator @relation(fields: [assignedBy], references: [coordinatorID], onDelete: SetNull, onUpdate: NoAction)
-  Driver      Driver      @relation(fields: [driverID], references: [driverID], onDelete: SetNull, onUpdate: NoAction)
+  Driver      Driver?     @relation(fields: [driverID], references: [driverID], onDelete: SetNull, onUpdate: NoAction)
   Waypoint    Waypoint[]
 }
 
@@ -163,7 +163,7 @@ model Waypoint {
   updatedAt     DateTime?               @default(now()) @db.Timestamptz(6)
   index         Int?
   DeliveryOrder DeliveryOrder[]
-  Route         Route                   @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
+  Route         Route?                  @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([geoLocation], map: "waypoint_geolocation_gist", type: Gist)
 }
