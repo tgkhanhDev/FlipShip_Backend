@@ -127,19 +127,6 @@ INSERT INTO "Route" ("driverID", "assignedBy", "createdAt", "updatedAt") VALUES
         '2025-05-05 08:00:00+00'
     );
 
--- Insert sample data into Waypoint table (Fixed: Removed trailing comma)
-INSERT INTO "Waypoint" ("routeID", "geoLocation", "location") VALUES
-    (
-        (SELECT "routeID" FROM "Route" WHERE "driverID" = (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'))),
-        ST_GeomFromText('POINT(106.6830 10.7620)', 4326),
-        'District 1, Ho Chi Minh City'
-    ),
-    (
-        (SELECT "routeID" FROM "Route" WHERE "driverID" = (SELECT "driverID" FROM "Driver" WHERE "accountID" = (SELECT "accountID" FROM "Account" WHERE email = 'driver1@example.com'))),
-        ST_GeomFromText('POINT(106.7699 10.8533)', 4326),
-        'Thu Duc City, Ho Chi Minh City'
-    );
-
 -- Additional sample data for Route table to support multiple routes
 INSERT INTO "Route" ("driverID", "assignedBy", "createdAt", "updatedAt") VALUES
     (
@@ -150,12 +137,13 @@ INSERT INTO "Route" ("driverID", "assignedBy", "createdAt", "updatedAt") VALUES
     );
 
 -- Additional sample data for Waypoint table to support multiple waypoints for the new route
-INSERT INTO "Waypoint" ("routeID", "geoLocation", "location", "index", "createdAt", "updatedAt") VALUES
+INSERT INTO "Waypoint" ("routeID", "geoLocation", "location", "index", "arrivalTime", "createdAt", "updatedAt") VALUES
     (
         (SELECT "routeID" FROM "Route" WHERE "createdAt" = '2025-05-06 09:00:00+00'),
         ST_GeomFromText('POINT(106.6600 10.7800)', 4326),
         'District 3, Ho Chi Minh City',
         1,
+        null,
         '2025-05-06 09:00:00+00',
         '2025-05-06 09:00:00+00'
     ),
@@ -164,6 +152,7 @@ INSERT INTO "Waypoint" ("routeID", "geoLocation", "location", "index", "createdA
         ST_GeomFromText('POINT(106.8000 10.9000)', 4326),
         'Binh Thanh District, Ho Chi Minh City',
         2,
+        null,
         '2025-05-06 09:00:00+00',
         '2025-05-06 09:00:00+00'
     );

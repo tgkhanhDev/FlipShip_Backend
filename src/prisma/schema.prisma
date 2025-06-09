@@ -150,18 +150,19 @@ model Route {
   createdAt   DateTime?   @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime?   @default(now()) @db.Timestamptz(6)
   Coordinator Coordinator @relation(fields: [assignedBy], references: [coordinatorID], onDelete: SetNull, onUpdate: NoAction)
-  Driver      Driver?     @relation(fields: [driverID], references: [driverID], onDelete: SetNull, onUpdate: NoAction)
+  Driver      Driver?     @relation(fields: [driverID], references: [driverID], onUpdate: NoAction)
   Waypoint    Waypoint[]
 }
 
 model Waypoint {
   waypointID    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  routeID       String                  @db.Uuid
+  routeID       String?                 @db.Uuid
   geoLocation   Unsupported("geometry")
   location      String                  @db.VarChar
+  index         Int
+  arrivalTime   DateTime?               @db.Timestamptz(6)
   createdAt     DateTime?               @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime?               @default(now()) @db.Timestamptz(6)
-  index         Int?
   DeliveryOrder DeliveryOrder[]
   Route         Route?                  @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
 

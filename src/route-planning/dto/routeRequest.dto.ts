@@ -28,6 +28,10 @@ export class CreateWaypointRequest {
   @IsNotEmpty({ message: 'Index is required' })
   @Min(1, { message: 'Index must be at least 1' })
   index: number
+
+  @IsDateString()
+  @IsOptional()
+  arrivalTime: string
 }
 
 export class UpdateWaypointRequest extends CreateWaypointRequest {}

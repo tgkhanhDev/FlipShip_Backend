@@ -139,6 +139,7 @@ CREATE TABLE "Waypoint" (
     "geoLocation" geometry(POINT, 4326) NOT NULL,
     "location" VARCHAR NOT NULL,
     "index" int NOT NULL,
+    "arrivalTime" TIMESTAMPTZ,
     "createdAt" TIMESTAMPTZ DEFAULT NOW(),
     "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY ("routeID") REFERENCES "Route"("routeID") ON DELETE CASCADE

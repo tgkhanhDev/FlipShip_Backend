@@ -18,7 +18,7 @@ export class RoutePlanningService {
     this.waypointRepository = repository.waypoint;
   }
 
-    async findByRouteID(routeID: string): Promise<Route | null> {
+  async findByRouteID(routeID: string): Promise<Route | null> {
     return await this.routeRepository.findUnique({
       where: {
         routeID,
@@ -89,13 +89,13 @@ export class RoutePlanningService {
   async planningRoute(
     driverID: string,
     waypoints: CreateWaypointRequest[],
-    coordinatorAccountID: string //from Token
+    coordinatorAccountID: string, //from Token
   ): Promise<Route | any> {
     // Validate input
     if (waypoints.length < 2) {
       throw new HttpException(
         'Route must have at least 2 waypoints',
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -129,23 +129,28 @@ export class RoutePlanningService {
     }
 
     //create route
-    const route = await this.repository.route.create({
+    const route: any = await this.repository.route.create({
       data: {
         assignedBy: coordinator.coordinatorID,
         ...(driverID && {
           driverID: driverID,
         }),
-      }
+      },
+      include: {
+        Waypoint: true,
+      },
     });
 
     //create waypoints
+    const waypointList: any[] = [];
     for (const waypoint of waypoints) {
-      await this.createWaypoint({
-        ...waypoint,
-      }, route.routeID
+      const waypointCreated: Waypoint = await this.createWaypoint({
+          ...waypoint,
+        }, route.routeID,
       );
+      waypointList.push(waypointCreated);
     }
-
+    route.Waypoint = waypointList
     return route;
   }
 
@@ -165,38 +170,37 @@ export class RoutePlanningService {
 
   async createWaypoint(request: CreateWaypointRequest, routeID: string): Promise<Waypoint> {
     const query = `
-    INSERT INTO "Waypoint" (
-      "waypointID",
-      "routeID",
-      "geoLocation",
-      "location",
-      "createdAt",
-      "updatedAt",
-      "index"
-    )
-    VALUES (
-      uuid_generate_v4(),
-      $1::uuid,
-      ST_GeomFromText($2, 4326),
-      $3,
-      NOW(),
-      NOW(),
-      $4
-    )
-    RETURNING 
+        INSERT INTO "Waypoint" ("waypointID",
+                                "routeID",
+                                "geoLocation",
+                                "location",
+                                "arrivalTime",
+                                "createdAt",
+                                "updatedAt",
+                                "index")
+        VALUES (uuid_generate_v4(),
+                $1::uuid,
+                ST_GeomFromText($2, 4326),
+                $3,
+                $4::TIMESTAMPTZ,
+                NOW(),
+                NOW(),
+                $5) RETURNING 
         "waypointID",
         "routeID",
         ST_AsText("geoLocation") AS "geoLocation",
         "location",
+        "arrivalTime",
         "createdAt",
         "updatedAt",
         "index"
-  `;
+    `;
     const result: any[] = await this.repository.$queryRawUnsafe(query,
       routeID, // $1: routeID
       `POINT(${request.locationLongtitude} ${request.locationLatitude})`, // $2: geoLocation
       request.locationName, // $3: location
-      request.index // $4: index
+      request?.arrivalTime || null, // $4: arrivalTime
+      request.index, // $5: index
     );
     return result[0];
   }
@@ -216,26 +220,28 @@ export class RoutePlanningService {
     }
 
     const query = `
-    UPDATE "Waypoint"
-    SET
-      "geoLocation" = ST_GeomFromText($1, 4326),
-      "location" = $2,
-      "index" = $3
-    WHERE "waypointID" = $4::uuid
+        UPDATE "Waypoint"
+        SET "geoLocation" = ST_GeomFromText($1, 4326),
+            "location"    = $2,
+            "index"       = $3,
+            "arrivalTime" = $4::TIMESTAMPTZ
+        WHERE "waypointID" = $5::uuid
     RETURNING 
         "waypointID",
         "routeID",
         ST_AsText("geoLocation") AS "geoLocation",
         "location",
+        "arrivalTime",
         "createdAt",
         "updatedAt",
         "index"
-  `;
+    `;
     const result: any[] = await this.repository.$queryRawUnsafe(query,
       `POINT(${request.locationLongtitude} ${request.locationLatitude})`, // $1: geoLocation
       request.locationName, // $2: location
       request.index, // $3: index
-      waypointID // $4: waypointID
+      request?.arrivalTime || null, // $4: arrivalTime
+      waypointID, // $5: waypointID
     );
     return result[0];
   }
