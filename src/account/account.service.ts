@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaPostgresService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { Account, Company, Role, Customer } from '@prisma/client';
+import { Account, Company, Role, Customer, Coordinator, Driver } from '@prisma/client';
 import {
   CreateAccountRequest,
   CreateCustomerAccountRequest,
@@ -16,6 +16,8 @@ export class AccountService {
   private readonly accountRepository;
   private readonly companyRepository;
   private readonly customerRepository;
+  private readonly coordinatorRepository;
+  private readonly driverRepository;
 
 
   constructor(
@@ -24,6 +26,8 @@ export class AccountService {
     this.accountRepository = repository.account;
     this.companyRepository = repository.company;
     this.customerRepository = repository.customer;
+    this.coordinatorRepository = repository.coordinator;
+    this.driverRepository = repository.driver;
   }
 
   findAll() {
@@ -149,7 +153,38 @@ export class AccountService {
         accountID
       },
     })
+  }
 
+  async findCompanyByAccountID(accountID: string): Promise<Company | null> {
+    return await this.companyRepository.findUnique({
+      where: {
+        accountID
+      },
+    })
+  }
+
+  async findCoordinatorByAccountID(accountID: string): Promise<Coordinator | null> {
+    return await this.coordinatorRepository.findUnique({
+      where: {
+        accountID
+      },
+    })
+  }
+
+  async findDriverByAccountID(accountID: string): Promise<Driver | null> {
+    return await this.driverRepository.findUnique({
+      where: {
+        accountID
+      },
+    })
+  }
+
+  async findDriverByDriverID(driverID: string): Promise<Driver | null> {
+    return await this.driverRepository.findUnique({
+      where: {
+        driverID
+      },
+    })
   }
 
 }

@@ -15,6 +15,7 @@ import { JwtUtilsService } from './auth/jwtUtils.service';
 import { ImageHandlerModule } from './image-handler/image-handler.module';
 import { ChatModule } from './chat-handler/chat.module';
 import { NotificationHandlerModule } from './notification-handler/notification-handler.module';
+import { RoutePlanningModule } from './route-planning/route-planning.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationHandlerModule } from './notification-handler/notification-h
     ImageHandlerModule,
     ChatModule,
     NotificationHandlerModule,
+    RoutePlanningModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaPostgresService, ...guardProviders],
