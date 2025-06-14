@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { NotificationHandlerService } from './notification-handler.service';
-import { NotificationHandlerController } from './notification-handler.controller';
+import { NotificationService } from './notification-handler.service';
+import { firebaseAdminProvider } from './firebase-admin.provider';
+import { NotificationController } from './notification-handler.controller';
 
 @Module({
-  controllers: [NotificationHandlerController],
-  providers: [NotificationHandlerService],
+  controllers: [NotificationController],
+  providers: [firebaseAdminProvider, NotificationService],
 })
 export class NotificationHandlerModule {}

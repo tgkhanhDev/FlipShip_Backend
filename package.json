@@ -22,7 +22,8 @@
     "db:refresh": "npx prisma db pull --schema=src/prisma/schema.prisma && npx prisma generate --schema=src/prisma/schema.prisma",
     "db:view": "npx prisma studio --schema=src/prisma/schema.prisma",
     "tunnel": "ngrok http 8080",
-    "start:dev:tunnel": "concurrently --names \"NEST,NGROK\" --prefix \"[{name}]\" --prefix-colors \"blue,green\" --raw \"npm run start:dev\" \"npm run tunnel\""
+    "tunnel:delayed": "wait-on http://localhost:8080 && ngrok http 8080",
+    "start:dev:tunnel": "concurrently --names \"NEST,NGROK\" --prefix \"[{name}]\" --prefix-colors \"blue,green\" --raw \"npm run start:dev\" \"npm run tunnel:delayed\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.802.0",
@@ -48,6 +49,7 @@
     "firebase-admin": "^13.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "wait-on": "^8.0.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

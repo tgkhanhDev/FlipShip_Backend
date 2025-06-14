@@ -1,26 +1,75 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNotificationHandlerDto } from './dto/create-notification-handler.dto';
 import { UpdateNotificationHandlerDto } from './dto/update-notification-handler.dto';
+import { sendNotificationDTO } from './dto/send-notification.dto';
+import * as firebase from 'firebase-admin';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
-export class NotificationHandlerService {
+export class NotificationService {
+  async sendPush(notification: sendNotificationDTO) {
+    const sentAt = dayjs().tz('Asia/Ho_Chi_Minh').toISOString();
+
+    try {
+      const response = await firebase.messaging().sendEachForMulticast({
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        tokens: notification.deviceIds,
+        data: {
+          sentAt,
+        },
+      });
+
+      return {
+        success: true,
+        payload: {
+          title: notification.title,
+          body: notification.body,
+          deviceIds: notification.deviceIds,
+          sentAt,
+        },
+        summary: {
+          successCount: response.successCount,
+          failureCount: response.failureCount,
+        },
+        responses: response.responses.map((r, idx) => ({
+          token: notification.deviceIds[idx],
+          success: r.success,
+          error: r.error?.message || null,
+        })),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   create(createNotificationHandlerDto: CreateNotificationHandlerDto) {
-    return 'This action adds a new notificationHandler';
+    return 'This action adds a new notification';
   }
 
   findAll() {
-    return `This action returns all notificationHandler`;
+    return `This action returns all notification`;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} notificationHandler`;
+    return `This action returns a #${id} notification`;
   }
 
   update(id: number, updateNotificationHandlerDto: UpdateNotificationHandlerDto) {
-    return `This action updates a #${id} notificationHandler`;
+    return `This action updates a #${id} notification`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} notificationHandler`;
+    return `This action removes a #${id} notification`;
   }
 }
