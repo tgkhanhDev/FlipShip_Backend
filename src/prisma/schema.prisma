@@ -11,6 +11,7 @@ model Account {
   accountID                                       String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   email                                           String         @unique @db.VarChar(255)
   fullName                                        String?        @db.VarChar(255)
+  avatar                                          String?
   password                                        String
   status                                          String?        @default("active") @db.VarChar(50)
   role                                            Role
@@ -136,8 +137,6 @@ model DeliveryOrder {
   Company             Company?                @relation(fields: [deliveryCompanyID], references: [companyID], onUpdate: NoAction)
   Driver              Driver?                 @relation(fields: [driverID], references: [driverID], onUpdate: NoAction)
   Waypoint            Waypoint?               @relation(fields: [waypointID], references: [waypointID], onUpdate: NoAction)
-
-  @@index([dropDownGeoLocation], map: "deliveryorder_dropdown_geolocation_gist", type: Gist)
 }
 
 model Route {
@@ -162,8 +161,6 @@ model Waypoint {
   updatedAt     DateTime?               @default(now()) @db.Timestamptz(6)
   DeliveryOrder DeliveryOrder[]
   Route         Route?                  @relation(fields: [routeID], references: [routeID], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([geoLocation], map: "waypoint_geolocation_gist", type: Gist)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -234,7 +231,6 @@ model DeviceToken {
 model Notification {
   notificationID String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   accountID      String        @db.Uuid
-  deviceID       String?       @db.VarChar(1000)
   notiType       Notify_Type?
   notiStatus     Notify_Status @default(Unread)
   title          String        @db.VarChar(500)

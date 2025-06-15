@@ -5,12 +5,12 @@ import { ErrorCode } from 'src/exception/errorCode.dto';
 import { SendMessage } from './dto/chatRequest.dto';
 import { ReceiveMessage } from './dto/chatResponse.dto';
 import { ChatMapper } from '../chat-handler/mapper/chat.mapper';
-import * as dayjs from 'dayjs';
-import 'dayjs/plugin/utc';
-import 'dayjs/plugin/timezone';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
-dayjs.extend(require('dayjs/plugin/utc'));
-dayjs.extend(require('dayjs/plugin/timezone'));
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class ChatService {

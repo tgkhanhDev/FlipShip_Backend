@@ -3,9 +3,9 @@ import { CreateNotificationHandlerDto } from './dto/create-notification-handler.
 import { UpdateNotificationHandlerDto } from './dto/update-notification-handler.dto';
 import { sendNotificationDTO } from './dto/send-notification.dto';
 import * as firebase from 'firebase-admin';
-import * as dayjs from 'dayjs';
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

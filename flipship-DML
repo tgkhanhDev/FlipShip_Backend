@@ -1,13 +1,13 @@
 -- Insert sample data into Account table
-INSERT INTO "Account" (email, "fullName", password, status, role, "createdAt", "updatedAt") VALUES
-    ('john.doe@example.com', 'John Doe','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 08:00:00+00', '2025-05-01 08:00:00+00'),
-    ('jane.smith@example.com', 'Jane Smith','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 09:00:00+00', '2025-05-01 09:00:00+00'),
-    ('acme.corp@example.com', 'Acme Corp','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Company', '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00'),
-    ('coordinator1@example.com', 'Chris Lee','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Coordinator', '2025-05-01 11:00:00+00', '2025-05-01 11:00:00+00'),
-    ('mary.jones@example.com', 'Mary Jones','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'inactive', 'Customer', '2025-05-01 12:00:00+00', '2025-05-01 12:00:00+00'),
-    ('driver1@example.com', 'Bob Smith','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Driver', '2025-05-01 13:00:00+00', '2025-05-01 13:00:00+00'),
-    ('staff1@example.com', 'Alice Brown','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Staff', '2025-05-01 14:00:00+00', '2025-05-01 14:00:00+00'),
-    ('admin1@example.com', 'Adam Abraham','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Admin', '2025-05-01 15:00:00+00', '2025-05-01 15:00:00+00');
+INSERT INTO "Account" (email, fullName, avatar, password, status, role, "createdAt", "updatedAt") VALUES
+    ('john.doe@example.com', 'John Doe', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 08:00:00+00', '2025-05-01 08:00:00+00'),
+    ('jane.smith@example.com', 'Jane Smith', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Customer', '2025-05-01 09:00:00+00', '2025-05-01 09:00:00+00'),
+    ('acme.corp@example.com', 'Acme Corp', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Company', '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00'),
+    ('coordinator1@example.com', 'Chris Lee', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Coordinator', '2025-05-01 11:00:00+00', '2025-05-01 11:00:00+00'),
+    ('mary.jones@example.com', 'Mary Jones', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'inactive', 'Customer', '2025-05-01 12:00:00+00', '2025-05-01 12:00:00+00'),
+    ('driver1@example.com', 'Bob Smith', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Driver', '2025-05-01 13:00:00+00', '2025-05-01 13:00:00+00'),
+    ('staff1@example.com', 'Alice Brown', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Staff', '2025-05-01 14:00:00+00', '2025-05-01 14:00:00+00'),
+    ('admin1@example.com', 'Adam Abraham', 'https://avatar.iran.liara.run/public','$2b$10$Qu73RNaLyG95KDqb/AoDZevFrn54Mrx.lburY9ZO7WXrwyW5L0yfy', 'active', 'Admin', '2025-05-01 15:00:00+00', '2025-05-01 15:00:00+00');
 
 -- Insert sample data into Customer table
 INSERT INTO "Customer" ("accountID", "phoneNumber", "address", "updatedAt") VALUES
