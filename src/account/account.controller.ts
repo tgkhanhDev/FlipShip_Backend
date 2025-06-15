@@ -1,6 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountService } from './account.service';
-import { Public} from 'src/common/utils/metadata';
+import { Public } from 'src/common/utils/metadata';
 
 @Controller('account')
 export class AccountController {
@@ -11,6 +21,20 @@ export class AccountController {
   // findAll() {
   //   return this.accountService.getAllDriverAccount();
   // }
+
+  @Get()
+  async getProfile(@Req() req: Request) {
+    const accountID = req['account']?.sub;
+    if (!accountID) throw new NotFoundException('Token không hợp lệ');
+
+    const result =
+      await this.accountService.findAccountWithDetailsById(accountID);
+    if (!result) throw new NotFoundException('Không tìm thấy tài khoản');
+
+    return {
+      account: result,
+    };
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
