@@ -48,7 +48,7 @@ export const ErrorMessages: Record<ErrorCode, { message: string; httpStatus: num
         httpStatus: HttpStatus.BAD_REQUEST,
     },
     [ErrorCode.ACCOUNT_NOT_FOUND]: {
-        message: 'Account not found',
+        message: 'Tài khoản không tồn tại',
         httpStatus: HttpStatus.NOT_FOUND,
     },
     [ErrorCode.INVALID_CREDENTIALS]: {
